@@ -8,4 +8,5 @@
 /arc/outboundfeeds/sitemap-news-index/?outputType=xml
 /arc/outboundfeeds/sitemap-section-index/?outputType=xml
 /arc/outboundfeeds/google-news-feed/
+/arc/outboundfeeds/robots.txt
 /robots.txt
