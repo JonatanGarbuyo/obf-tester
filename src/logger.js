@@ -1,3 +1,7 @@
+function statusTag(passed) {
+  return passed ? '[PASS]' : '[FAIL]'
+}
+
 function extractDetail(result) {
   const firstFail = result.checks.find(c => !c.passed)
   if (firstFail) return `${firstFail.check}: ${firstFail.detail}`
@@ -6,19 +10,17 @@ function extractDetail(result) {
 }
 
 export function rowResult(result, indent = 0) {
-  const icon = result.passed ? '✓' : '✗'
   const pad = ' '.repeat(indent)
   const detail = extractDetail(result)
-  console.log(`${pad}${icon} ${result.url}${detail ? `  ${detail}` : ''}`)
+  console.log(`${pad}${statusTag(result.passed)} ${result.url}${detail ? `  ${detail}` : ''}`)
 }
 
 export function singleResult({ url, passed, checks }) {
-  const icon = passed ? '✓' : '✗'
-  console.log(`\n${icon} ${url}`)
+  console.log(`\n${statusTag(passed)} ${url}`)
   console.log(`  Status: ${passed ? 'PASS' : 'FAIL'}\n`)
 
   for (const c of checks) {
-    const mark = c.passed ? '  ✔' : '  ✘'
+    const mark = c.passed ? '  [ok]' : '  [err]'
     console.log(`${mark} ${c.check}: ${c.detail}`)
   }
   console.log('')
