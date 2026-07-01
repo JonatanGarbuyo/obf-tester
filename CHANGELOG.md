@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.0] - 2026-07-01
+
+### Added
+
+- **Test suite**: 127 tests across 5 files using vitest
+- **`isMain` guard**: prevents `main()` execution on import for testing
+- **Exported helpers**: `normalizeUrl`, `resolveUrl`, `extractChildUrls`, `isProdUrl`, `parseOptions`, `mapConcurrent`, `readSource`
+
+### Fixed
+
+- **discover regex**: `\s*` matched across newlines, causing empty `Sitemap:` lines to consume next line
+- **ESM mocking**: use `vi.mock('node:fs')` instead of `vi.spyOn` for Node built-in modules
+
 ## [0.7.0] - 2026-07-01
 
 ### Added

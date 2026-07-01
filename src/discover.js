@@ -18,7 +18,7 @@ export async function discover(url) {
   }
 
   const sitemaps = [];
-  const regex = /^Sitemap:\s*(.+)$/gim;
+  const regex = /^Sitemap:[ \t]*(.+)$/gim;
   let match;
   while ((match = regex.exec(response.body)) !== null) {
     const sitemapUrl = match[1].trim();

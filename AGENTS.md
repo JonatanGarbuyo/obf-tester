@@ -28,6 +28,16 @@
 - Every check must be independently skippable / configurable
 - Return structured results (`{ url, passed, checks }`), never throw for validation failures
 
+## Testing
+
+- Use **vitest** — `npm test` to run, `npm run test:watch` for watch mode
+- Mock `globalThis.fetch` for `fetcher.test.js`
+- Mock `fetchUrl` export with `vi.hoisted()` + `vi.mock()` factory for `validate.test.js` and `discover.test.js`
+- Mock `node:fs` with `vi.mock()` (not `vi.spyOn`, which doesn't work on ESM module namespace)
+- Helper functions exported from `src/index.js` specifically for testing
+- Guard CLI entry with `isMain` check to prevent `main()` execution on import
+- Coverage: `npx vitest run --coverage` (requires `@vitest/coverage-v8`)
+
 ## Git
 
 - Use [Conventional Commits](https://www.conventionalcommits.org/) prefixes:

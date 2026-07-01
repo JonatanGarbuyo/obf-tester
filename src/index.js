@@ -4,6 +4,9 @@ import { readFileSync } from 'node:fs';
 import { validate } from './validate.js';
 import { discover } from './discover.js';
 
+// Exported for testing
+export { normalizeUrl, resolveUrl, extractChildUrls, isProdUrl, parseOptions, mapConcurrent, readSource }
+
 function printSingle({ url, passed, checks }) {
   const icon = passed ? '✓' : '✗';
   console.log(`\n${icon} ${url}`);
@@ -338,7 +341,10 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  console.error('Fatal:', err.message);
-  process.exit(1);
-});
+const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1]);
+if (isMain) {
+  main().catch(err => {
+    console.error('Fatal:', err.message);
+    process.exit(1);
+  });
+}
