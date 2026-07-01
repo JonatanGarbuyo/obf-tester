@@ -7,6 +7,10 @@
 - **`validate <url> --recursive`**: now supports `--recursive` to follow sitemap-index children. Works with `--max-pagination`, `--max-concurrency`, `--delay`, `--domain`, and `--local`
 - **`validateAndRecurse()` helper**: shared logic extracted for `runSingle --recursive`, `runBatch --recursive`, and testability
 
+### Changed
+
+- **Child count feedback**: shows `(N children)` immediately after parent, before async validation starts. No more silent wait
+
 ## [0.11.0] - 2026-07-01
 
 ### Added

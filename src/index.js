@@ -182,6 +182,7 @@ async function validateAndRecurse(url, options, domain, delayMs) {
     const childUrls = extractChildUrls(result.body);
     if (childUrls.length > 0) {
       const sliced = options.maxPagination > 0 ? childUrls.slice(0, options.maxPagination) : childUrls;
+      console.log(`  (${sliced.length} children)`);
       const childResolved = sliced.map(cu => resolveUrl(cu, domain));
       const childResults = await mapConcurrent(childResolved, options.maxConcurrency ?? 1, async (childUrl) => {
         await sleep(delayMs);
@@ -333,6 +334,7 @@ async function runCheck(args) {
       if (childUrls.length === 0) continue;
 
       const sliced = options.maxPagination > 0 ? childUrls.slice(0, options.maxPagination) : childUrls;
+      console.log(`  (${sliced.length} children)`);
       const childResolved = sliced.map(cu => resolveUrl(cu, domain));
       const childResults = await mapConcurrent(childResolved, options.maxConcurrency, async (childUrl) => {
         await sleep(delayMs);
