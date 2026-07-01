@@ -29,9 +29,10 @@ npx obf validate --source ./feeds.txt --domain http://localhost
 # full check: discover + validate + recursive in one command
 npx obf check canal26.com
 npx obf check canal26.com --local
-npx obf check canal26.com --local                              # serial, 300ms delay
-npx obf check canal26.com --local --delay 1000                 # 1s between requests
-npx obf check canal26.com --local --max-concurrency 3 --delay 0 # paralelo sin delay
+npx obf check canal26.com --local                                         # serial, 300ms, full children
+npx obf check canal26.com --local --max-pagination 3                      # solo 3 hijos por sitemapindex
+npx obf check canal26.com --local --max-pagination 3 --delay 1000         # 1s entre requests, 3 hijos
+npx obf check canal26.com --local --max-concurrency 3 --delay 0           # paralelo sin delay
 
 # discover sitemap URLs from robots.txt
 npx obf discover canal26.com
@@ -57,6 +58,7 @@ Run validations against one or more feed URLs.
 | `--recursive` | Follow `<sitemapindex>` children automatically |
 | `--max-concurrency <N>` | Concurrent requests (default 1) |
 | `--delay <ms>` | Delay between requests (default 300, overrides Crawl-Delay) |
+| `--max-pagination <N>` | Max children per sitemap-index (0 = all). Skips dates, paginations |
 
 ### `check`
 
@@ -69,6 +71,7 @@ Discover + validate + recursive in one command. Shortcut that reads robots.txt, 
 | `--local` | Shorthand for `--domain http://localhost` |
 | `--max-concurrency <N>` | Concurrent requests (default 1) |
 | `--delay <ms>` | Delay between requests (default 300) |
+| `--max-pagination <N>` | Max children per sitemap-index (0 = all) |
 
 ### `discover`
 

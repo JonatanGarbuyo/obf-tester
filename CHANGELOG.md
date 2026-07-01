@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.11.0] - 2026-07-01
+
+### Added
+
+- **`--max-pagination <N>`**: limit children per sitemap-index (0 = all). Useful to skip paginations and dates
+- **Full URLs in output**: `printBatchRow` always shows complete URL, no more abbreviated params
+
+### Changed
+
+- **`check` usage**: shows `--max-pagination` flag in help
+
 ## [0.10.0] - 2026-07-01
 
 ### Added

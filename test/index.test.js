@@ -184,6 +184,16 @@ describe('parseOptions', () => {
     expect(opts.delay).toBe(500)
   })
 
+  it('defaults maxPagination to 0', () => {
+    const opts = parseOptions([])
+    expect(opts.maxPagination).toBe(0)
+  })
+
+  it('parses --max-pagination', () => {
+    const opts = parseOptions(['--max-pagination', '5'])
+    expect(opts.maxPagination).toBe(5)
+  })
+
   it('parses --content-type', () => {
     const opts = parseOptions(['--content-type', 'application/json'])
     expect(opts.expectedContentType).toBe('application/json')

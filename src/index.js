@@ -60,6 +60,9 @@ function parseOptions(args) {
   const delayIndex = args.indexOf('--delay');
   options.delay = delayIndex !== -1 && args[delayIndex + 1] !== undefined ? Number(args[delayIndex + 1]) : undefined;
 
+  const maxPageIndex = args.indexOf('--max-pagination');
+  options.maxPagination = maxPageIndex !== -1 && args[maxPageIndex + 1] !== undefined ? Number(args[maxPageIndex + 1]) : 0;
+
   return options;
 }
 
@@ -150,10 +153,7 @@ function printBatchRow(result, indent = 0) {
   const icon = result.passed ? '✓' : '✗';
   const pad = ' '.repeat(indent);
   const detail = extractDetail(result);
-  const label = result.passed && indent > 0
-    ? new URL(result.url).search || new URL(result.url).pathname.split('/').pop()
-    : result.url;
-  console.log(`${pad}${icon} ${label}${detail ? `  ${detail}` : ''}`);
+  console.log(`${pad}${icon} ${result.url}${detail ? `  ${detail}` : ''}`);
 }
 
 function isProdUrl(url) {
@@ -203,7 +203,8 @@ async function runBatch(args) {
       const childUrls = extractChildUrls(result.body);
       if (childUrls.length === 0) continue;
 
-      const childResolved = childUrls.map(cu => resolveUrl(cu, domain));
+      const sliced = options.maxPagination > 0 ? childUrls.slice(0, options.maxPagination) : childUrls;
+      const childResolved = sliced.map(cu => resolveUrl(cu, domain));
       const childResults = await mapConcurrent(childResolved, maxConcurrency, async (childUrl) => {
         await sleep(delayMs);
         return validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType });
@@ -240,6 +241,7 @@ async function runSingle(args) {
     console.error('  --local                  Shorthand for --domain http://localhost');
     console.error('  --max-concurrency <N>    Concurrent requests (default 1)');
     console.error('  --delay <ms>             Delay between requests (default 300)');
+    console.error('  --max-pagination <N>     Max children per sitemap-index (0 = all)');
     process.exit(1);
   }
 
@@ -252,7 +254,7 @@ async function runSingle(args) {
 async function runCheck(args) {
   const url = args[0];
   if (!url || url.startsWith('--')) {
-    console.error('Usage: npx obf check <url> [--domain <url>] [--local] [--max-concurrency N] [--delay ms]');
+    console.error('Usage: npx obf check <url> [--domain <url>] [--local] [--max-concurrency N] [--delay ms] [--max-pagination N]');
     process.exit(1);
   }
 
@@ -294,7 +296,8 @@ async function runCheck(args) {
       const childUrls = extractChildUrls(result.body);
       if (childUrls.length === 0) continue;
 
-      const childResolved = childUrls.map(cu => resolveUrl(cu, domain));
+      const sliced = options.maxPagination > 0 ? childUrls.slice(0, options.maxPagination) : childUrls;
+      const childResolved = sliced.map(cu => resolveUrl(cu, domain));
       const childResults = await mapConcurrent(childResolved, options.maxConcurrency, async (childUrl) => {
         await sleep(delayMs);
         return validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType });
@@ -350,7 +353,7 @@ async function main() {
     console.error('Usage: npx obf validate <url> [options]');
     console.error('       npx obf validate --source <file> [--domain <url>] [--recursive]');
     console.error('       npx obf discover <url>');
-    console.error('       npx obf check <url> [--local] [--max-concurrency N] [--delay ms]');
+    console.error('       npx obf check <url> [--local] [--max-concurrency N] [--delay ms] [--max-pagination N]');
     process.exit(1);
   }
 
