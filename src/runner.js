@@ -9,7 +9,7 @@ import {
   isProdUrl,
   mapConcurrent,
 } from './utils.js'
-import { printSingle, printBatchRow, printBatchSummary } from './format.js'
+import * as logger from './logger.js'
 
 const DEFAULT_DELAY = 300
 
@@ -50,7 +50,7 @@ function validateOpts(argv) {
 export async function validateAndRecurse(url, options, domain, delayMs) {
   const result = await validate(url, validateOpts(options))
   const all = [result]
-  printBatchRow(result)
+  logger.rowResult(result)
 
   const isXml = result.contentType?.includes('xml') || result.body?.includes('<sitemapindex')
   if (result.body && isXml) {
@@ -59,7 +59,7 @@ export async function validateAndRecurse(url, options, domain, delayMs) {
       const maxPagination = options.maxPagination ?? 0
       const maxConcurrency = options.maxConcurrency ?? 1
       const sliced = maxPagination > 0 ? childUrls.slice(0, maxPagination) : childUrls
-      console.log(`  (${sliced.length} children)`)
+      logger.childCount(sliced.length)
       const childResolved = sliced.map(cu => resolveUrl(cu, domain))
       const childResults = await mapConcurrent(childResolved, maxConcurrency, async (childUrl) => {
         await sleep(delayMs)
@@ -67,7 +67,7 @@ export async function validateAndRecurse(url, options, domain, delayMs) {
       })
       for (const child of childResults) {
         all.push(child)
-        printBatchRow(child, 2)
+        logger.rowResult(child, 2)
       }
     }
   }
@@ -84,20 +84,20 @@ export async function runValidate(argv) {
     const normalizedUrl = normalizeUrl(url)
 
     if (!domain && isProdUrl(normalizedUrl)) {
-      console.warn('⚠  Warning: validating against production URLs (use --domain to override)\n')
+      logger.warn('⚠  Warning: validating against production URLs (use --domain to override)\n')
     }
 
-    console.log(`Validate: ${normalizedUrl}\n`)
+    logger.validateHeader(normalizedUrl)
 
     const allResults = await validateAndRecurse(normalizedUrl, argv, domain, delayMs)
     const passed = allResults.filter(r => r.passed).length
-    printBatchSummary(passed, allResults.length)
-    process.exit(allResults.every(r => r.passed) ? 0 : 1)
+    logger.summary(passed, allResults.length)
+    logger.exit(allResults.every(r => r.passed) ? 0 : 1)
   }
 
   const result = await validate(normalizeUrl(url), validateOpts(argv))
-  printSingle(result)
-  process.exit(result.passed ? 0 : 1)
+  logger.singleResult(result)
+  logger.exit(result.passed ? 0 : 1)
 }
 
 export async function runBatch(argv) {
@@ -108,18 +108,18 @@ export async function runBatch(argv) {
 
   const lines = await readSource(source)
   if (lines.length === 0) {
-    console.error(`Source "${source}" is empty`)
-    process.exit(1)
+    logger.error(`Source "${source}" is empty`)
+    logger.exit(1)
   }
 
   const urls = lines.map(line => resolveUrl(line, domain))
 
   if (!domain && urls.some(u => isProdUrl(u))) {
-    console.warn('⚠  Warning: validating against production URLs (use --domain to override)\n')
+    logger.warn('⚠  Warning: validating against production URLs (use --domain to override)\n')
   }
 
   const mode = recursive ? `, concurrency ${maxConcurrency}, delay ${delayMs}ms` : ''
-  console.log(`Source: ${source} (${urls.length} routes${domain ? `, domain: ${domain}` : ''}${mode})\n`)
+  logger.sourceInfo(`Source: ${source} (${urls.length} routes${domain ? `, domain: ${domain}` : ''}${mode})\n`)
 
   const allResults = []
 
@@ -130,15 +130,15 @@ export async function runBatch(argv) {
     } else {
       const result = await validate(url, validateOpts(argv))
       allResults.push(result)
-      printBatchRow(result)
+      logger.rowResult(result)
     }
 
     if (delayMs > 0) await sleep(delayMs)
   }
 
   const passed = allResults.filter(r => r.passed).length
-  printBatchSummary(passed, allResults.length)
-  process.exit(allResults.every(r => r.passed) ? 0 : 1)
+  logger.summary(passed, allResults.length)
+  logger.exit(allResults.every(r => r.passed) ? 0 : 1)
 }
 
 export async function runCheck(argv) {
@@ -152,22 +152,22 @@ export async function runCheck(argv) {
 
   const { sitemaps, source, error, crawlDelay } = await discover(normalizedUrl)
   if (sitemaps.length === 0) {
-    console.error(`No sitemaps found in ${source}${error ? ` (${error})` : ''}`)
-    process.exit(1)
+    logger.error(`No sitemaps found in ${source}${error ? ` (${error})` : ''}`)
+    logger.exit(1)
   }
 
   const resolved = sitemaps.map(sm => resolveUrl(sm, domain))
   const effectiveDelay = delayMs ?? (crawlDelay ?? DEFAULT_DELAY)
 
-  console.log(`Check: ${normalizedUrl}\n`)
+  logger.checkInfo(`Check: ${normalizedUrl}\n`)
 
   let info = `${resolved.length} sitemaps`
   if (crawlDelay) info += `, Crawl-Delay ${crawlDelay}ms`
   info += `, delay ${effectiveDelay}ms`
-  console.log(`  ${info}\n`)
+  logger.sourceInfo(`  ${info}\n`)
 
   if (!domain && resolved.some(u => isProdUrl(u))) {
-    console.warn('⚠  Warning: validating against production URLs (use --domain or --local to override)\n')
+    logger.warn('⚠  Warning: validating against production URLs (use --domain or --local to override)\n')
   }
 
   const allResults = []
@@ -175,7 +175,7 @@ export async function runCheck(argv) {
   for (const rUrl of resolved) {
     const result = await validate(rUrl, validateOpts(argv))
     allResults.push(result)
-    printBatchRow(result)
+    logger.rowResult(result)
 
     const isXml = result.contentType?.includes('xml') || result.body?.includes('<sitemapindex')
     if (result.body && isXml) {
@@ -183,7 +183,7 @@ export async function runCheck(argv) {
       if (childUrls.length === 0) continue
 
       const sliced = maxPagination > 0 ? childUrls.slice(0, maxPagination) : childUrls
-      console.log(`  (${sliced.length} children)`)
+      logger.childCount(sliced.length)
       const childResolved = sliced.map(cu => resolveUrl(cu, domain))
       const childResults = await mapConcurrent(childResolved, maxConcurrency, async (childUrl) => {
         await sleep(effectiveDelay)
@@ -191,7 +191,7 @@ export async function runCheck(argv) {
       })
       for (const child of childResults) {
         allResults.push(child)
-        printBatchRow(child, 2)
+        logger.rowResult(child, 2)
       }
     }
 
@@ -199,8 +199,8 @@ export async function runCheck(argv) {
   }
 
   const passed = allResults.filter(r => r.passed).length
-  printBatchSummary(passed, allResults.length)
-  process.exit(allResults.every(r => r.passed) ? 0 : 1)
+  logger.summary(passed, allResults.length)
+  logger.exit(allResults.every(r => r.passed) ? 0 : 1)
 }
 
 export async function runDiscover(argv) {
@@ -208,11 +208,11 @@ export async function runDiscover(argv) {
   const result = await discover(normalizeUrl(url))
 
   if (result.sitemaps.length === 0) {
-    console.error(`No sitemaps found in ${result.source}${result.error ? ` (${result.error})` : ''}`)
-    process.exit(1)
+    logger.error(`No sitemaps found in ${result.source}${result.error ? ` (${result.error})` : ''}`)
+    logger.exit(1)
   }
 
   for (const sm of result.sitemaps) {
-    console.log(sm)
+    logger.plain(sm)
   }
 }

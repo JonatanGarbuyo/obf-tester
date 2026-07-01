@@ -14,6 +14,22 @@ vi.mock('../src/fetcher.js', () => ({
   fetchUrl: mockFetchUrl,
 }))
 
+const mockLogger = vi.hoisted(() => ({
+  rowResult: vi.fn(),
+  summary: vi.fn(),
+  childCount: vi.fn(),
+  warn: vi.fn(),
+  error: vi.fn(),
+  exit: vi.fn(),
+  singleResult: vi.fn(),
+  validateHeader: vi.fn(),
+  sourceInfo: vi.fn(),
+  checkInfo: vi.fn(),
+  plain: vi.fn(),
+}))
+
+vi.mock('../src/logger.js', () => mockLogger)
+
 import { readSource, validateAndRecurse } from '../src/runner.js'
 
 function mockResponse(overrides = {}) {
@@ -198,6 +214,8 @@ describe('validateAndRecurse', () => {
     expect(results).toHaveLength(1)
     expect(results[0].url).toBe('http://test.com/sitemap')
     expect(results[0].passed).toBe(true)
+    expect(mockLogger.rowResult).toHaveBeenCalledOnce()
+    expect(mockLogger.childCount).not.toHaveBeenCalled()
   })
 
   it('follows sitemap-index children', async () => {
@@ -213,6 +231,9 @@ describe('validateAndRecurse', () => {
     expect(results).toHaveLength(4) // 1 parent + 3 children
     expect(results[0].url).toBe('http://test.com/index')
     expect(mockFetchUrl).toHaveBeenCalledTimes(4)
+    expect(mockLogger.childCount).toHaveBeenCalledWith(3)
+    // 1 parent + 3 children rows
+    expect(mockLogger.rowResult).toHaveBeenCalledTimes(4)
   })
 
   it('recurses on body content even when Content-Type is not XML', async () => {
@@ -226,6 +247,7 @@ describe('validateAndRecurse', () => {
 
     const results = await validateAndRecurse('http://test.com/index', {}, undefined, 0)
     expect(results).toHaveLength(4) // 1 parent + 3 children — detected by <sitemapindex in body
+    expect(mockLogger.childCount).toHaveBeenCalledWith(3)
   })
 
   it('respects maxPagination', async () => {
@@ -240,6 +262,7 @@ describe('validateAndRecurse', () => {
     const results = await validateAndRecurse('http://test.com/index', { maxPagination: 2 }, undefined, 0)
     expect(results).toHaveLength(3) // 1 parent + 2 children
     expect(mockFetchUrl).toHaveBeenCalledTimes(3)
+    expect(mockLogger.childCount).toHaveBeenCalledWith(2)
   })
 })
 
