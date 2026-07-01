@@ -1,4 +1,4 @@
-import { fetchUrl, FetchError } from './fetcher.js';
+import { fetchUrl, FetchError } from './http.js';
 import { validateXml } from './validators/xml.js';
 
 const DEFAULT_FORBIDDEN_PATTERNS = [

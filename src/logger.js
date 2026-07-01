@@ -20,7 +20,7 @@ export function singleResult({ url, passed, checks }) {
   console.log(`  Status: ${passed ? 'PASS' : 'FAIL'}\n`)
 
   for (const c of checks) {
-    const mark = c.passed ? '  [ok]' : '  [err]'
+    const mark = c.passed ? '  [PASS]' : '  [FAIL]'
     console.log(`${mark} ${c.check}: ${c.detail}`)
   }
   console.log('')

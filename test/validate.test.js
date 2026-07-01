@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 const mockFetchUrl = vi.hoisted(() => vi.fn())
 
-vi.mock('../src/fetcher.js', () => ({
+vi.mock('../src/http.js', () => ({
   fetchUrl: mockFetchUrl,
 }))
 

@@ -1,5 +1,7 @@
 import yargs from 'yargs'
-import { runValidate, runBatch, runCheck, runDiscover } from './runner.js'
+import { runValidate, runBatch } from './commands/validate.js'
+import { runCheck } from './commands/check.js'
+import { runDiscover } from './commands/discover.js'
 
 export async function run(args) {
   await yargs(args)

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchUrl, FetchError } from '../src/fetcher.js'
+import { fetchUrl, FetchError } from '../src/http.js'
 
 beforeEach(() => {
   vi.restoreAllMocks()

@@ -3,16 +3,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import {
   normalizeUrl,
   resolveUrl,
-  extractChildUrls,
   isProdUrl,
+} from '../src/http.js'
+
+import {
+  extractChildUrls,
   mapConcurrent,
-} from '../src/utils.js'
+  readSource,
+} from '../src/extract.js'
 
 const mockFetchUrl = vi.hoisted(() => vi.fn())
 
-vi.mock('../src/fetcher.js', () => ({
-  fetchUrl: mockFetchUrl,
-}))
+vi.mock('../src/http.js', async (importOriginal) => {
+  const http = await importOriginal()
+  return { ...http, fetchUrl: mockFetchUrl }
+})
 
 const mockLogger = vi.hoisted(() => ({
   rowResult: vi.fn(),
@@ -30,7 +35,7 @@ const mockLogger = vi.hoisted(() => ({
 
 vi.mock('../src/logger.js', () => mockLogger)
 
-import { readSource, validateAndRecurse } from '../src/runner.js'
+import { validateAndRecurse } from '../src/commands/validate.js'
 
 function mockResponse(overrides = {}) {
   return {

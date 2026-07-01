@@ -13,6 +13,44 @@ export class FetchError extends Error {
   }
 }
 
+export function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms))
+}
+
+export function normalizeUrl(url) {
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  const isLocal = url.startsWith('localhost') || url.startsWith('127.0.0.1') || url.startsWith('0.0.0.0')
+  return `${isLocal ? 'http' : 'https'}://${url}`
+}
+
+export function resolveUrl(line, domain) {
+  if (line.startsWith('http://') || line.startsWith('https://')) {
+    if (domain) {
+      const parsed = new URL(line)
+      return new URL(parsed.pathname + parsed.search + parsed.hash, domain).href
+    }
+    return line
+  }
+
+  if (line.startsWith('/')) {
+    if (!domain) {
+      throw new Error(`Relative path "${line}" requires --domain`)
+    }
+    return new URL(line, domain).href
+  }
+
+  throw new Error(`Invalid path: "${line}" — must start with /, http://, or https://`)
+}
+
+export function isProdUrl(url) {
+  try {
+    const host = new URL(url).hostname
+    return host !== 'localhost' && host !== '127.0.0.1' && host !== '0.0.0.0'
+  } catch {
+    return true
+  }
+}
+
 export async function fetchUrl(url, options = {}) {
   const { timeout = DEFAULT_TIMEOUT, headers = {} } = options;
 
