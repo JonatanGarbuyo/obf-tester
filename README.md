@@ -22,15 +22,15 @@ npm install
 
 ```bash
 # validación básica (HTTP + content-type + patrones prohibidos)
-node src/index.js validate <url>
+npm run validate -- <url>
 
 # validación XML con auto-detección de tipo (RSS/Atom/sitemap)
-node src/index.js validate <url> --type xml
+npm run validate -- <url> --type xml
 
 # validación forzando tipo específico
-node src/index.js validate <url> --type rss
-node src/index.js validate <url> --type atom
-node src/index.js validate <url> --type sitemap
+npm run validate -- <url> --type rss
+npm run validate -- <url> --type atom
+npm run validate -- <url> --type sitemap
 ```
 
 El exit code es `0` si todas las validaciones pasan, `1` si alguna falla.
@@ -95,29 +95,29 @@ El exit code es `0` si todas las validaciones pasan, `1` si alguna falla.
 
 ```
 # RSS feed (HN)
-node src/index.js validate https://hnrss.org/frontpage --type rss
+npm run validate -- https://hnrss.org/frontpage --type rss
 
 # Atom feed (GitHub Blog)
-node src/index.js validate https://github.blog/feed/atom --type atom
+npm run validate -- https://github.blog/feed/atom --type atom
 
 # Sitemap (sitemaps.org)
-node src/index.js validate https://www.sitemaps.org/sitemap.xml --type sitemap
+npm run validate -- https://www.sitemaps.org/sitemap.xml --type sitemap
 
 # HTML normal
-node src/index.js validate https://httpbin.org/html --content-type text/html
+npm run validate -- https://httpbin.org/html --content-type text/html
 ```
 
 ### FAIL
 
 ```
 # 500 Internal Server Error
-node src/index.js validate https://httpbin.org/status/500
+npm run validate -- https://httpbin.org/status/500
 
 # 404 Not Found
-node src/index.js validate https://httpbin.org/status/404
+npm run validate -- https://httpbin.org/status/404
 
 # HTML cuando se espera XML
-node src/index.js validate https://httpbin.org/html --type xml
+npm run validate -- https://httpbin.org/html --type xml
 ```
 
 ## Arquitectura

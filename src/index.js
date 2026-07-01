@@ -21,7 +21,7 @@ async function main() {
   if (command === 'validate') {
     const url = args[1];
     if (!url) {
-      console.error('Usage: obf validate <url> [options]');
+      console.error('Usage: npm run validate -- <url> [options]');
       console.error('Options:');
       console.error('  --content-type <type>    Expected Content-Type (e.g. application/xml)');
       console.error('  --type <type>            Feed type: xml, rss, atom, sitemap');
@@ -47,7 +47,7 @@ async function main() {
     process.exit(result.passed ? 0 : 1);
   } else {
     console.log('Usage:');
-    console.log('  obf validate <url> [--content-type <type>] [--type <type>]');
+    console.log('  npm run validate -- <url> [--content-type <type>] [--type <type>]');
     process.exit(1);
   }
 }
