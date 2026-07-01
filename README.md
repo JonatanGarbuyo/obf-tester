@@ -4,209 +4,142 @@
 
 CMS-agnostic. Configurable via environment variables and route definitions.
 
-## Estado actual
-
-`validate` implementado con soporte para HTTP, XML, RSS, Atom y sitemaps.
-
-## Requisitos
+## Requirements
 
 - Node.js >= 22
 
-## Instalación
+## Install
 
 ```bash
 npm install
 ```
 
-## Uso
+## Usage
 
 ```bash
 # validate a single URL
 npx obf validate <url>
 
-# validate with specific type
+# validate with expected type
 npx obf validate <url> --type rss
 
 # batch validate from file
-npx obf validate --source ./feeds.txt --domain https://www.example.com
-
-# batch from absolute URLs (no --domain needed)
-npx obf validate --source ./urls.txt
-
-# discover sitemaps from robots.txt
-npx obf discover https://www.example.com
-
-# pipe discover → validate (relative paths, --domain rewrites)
-npx obf discover https://www.example.com | npx obf validate --source - --domain http://localhost
-
-# save to file, then validate
-npx obf discover https://www.example.com > sitemaps.txt
-npx obf validate --source sitemaps.txt --domain http://localhost
+npx obf validate --source ./feeds.txt --domain http://localhost
 
 # full check: discover + validate + recursive in one command
+npx obf check canal26.com
 npx obf check canal26.com --local
-npx obf check canal26.com                    # against production
-npx obf check canal26.com --domain http://localhost
-npx obf check canal26.com --local --max 1    # quick: only 1 child per index
+npx obf check canal26.com --local --max 1
+
+# discover sitemap URLs from robots.txt
+npx obf discover canal26.com
+
+# pipe discover into validate
+npx obf discover canal26.com | npx obf validate --source - --domain http://localhost
 ```
 
-El exit code es `0` si todas las validaciones pasan, `1` si alguna falla.
+Exit code is `0` if all validations pass, `1` otherwise.
 
-### Formato del archivo (`--source`)
+## Commands
 
-```
-# comentarios y líneas vacías se ignoran
-/ruta/relativa/feed.xml
-/ruta/relativa/sitemap.xml?outputType=xml
-https://url-absoluta.com/feed.xml
-```
+### `validate`
 
-- Rutas relativas requieren `--domain`
-- URLs absolutas se usan tal cual (o se reescriben con `--domain` si se especifica)
-- `--type` y `--content-type` aplican a todas las rutas del batch
-- `--source -` lee de stdin (útil con pipes)
+Run validations against one or more feed URLs.
 
-### Options
-
-| Flag | Descripción |
+| Flag | Description |
 |------|-------------|
+| `<url>` | Feed URL to validate |
 | `--type <type>` | Feed type: `xml`, `rss`, `atom`, `sitemap` |
-| `--content-type <type>` | Expected Content-Type |
 | `--source <file>` | File with routes (one per line), `-` for stdin |
 | `--domain <url>` | Base domain for relative routes in source |
-| `--recursive` | Follow `<sitemapindex>` children and validate each one |
-| `--max <number>` | Max recursive children (default 3, 0 = all) |
+| `--recursive` | Follow `<sitemapindex>` children automatically |
+| `--max <N>` | Limit recursive children (default 3, 0 = all) |
+
+### `check`
+
+Discover + validate + recursive in one command. Shortcut that reads robots.txt, fetches all sitemaps, and validates each one.
+
+| Flag | Description |
+|------|-------------|
+| `<url>` | Site URL (protocol optional, defaults to https) |
+| `--domain <url>` | Override domain for all routes |
 | `--local` | Shorthand for `--domain http://localhost` |
+| `--max <N>` | Limit recursive children (default 3, 0 = all) |
 
-## Validaciones
+### `discover`
 
-### HTTP (siempre activas)
+Fetch robots.txt from a URL and print `Sitemap:` entries to stdout (one per line). Useful with pipes or file redirection.
 
-| Check | Descripción |
+## Checks
+
+### HTTP (always active)
+
+| Check | Description |
 |-------|-------------|
-| `status` | HTTP status debe ser 2xx |
-| `body-not-empty` | Body con contenido (no vacío) |
-| `content-type` | Coincide con `--content-type` o `--type` si se especifica |
-| `forbidden-pattern` | Ausencia de stack traces, errores fatales, `[object Object]` |
+| `status` | HTTP status must be 2xx |
+| `body-not-empty` | Response body has content |
+| `content-type` | Matches `--content-type` or `--type` if specified |
+| `forbidden-pattern` | No stack traces, fatal errors, or `[object Object]` |
 
-### XML (se activan con `--type` o si content-type es XML)
+### XML (auto-detected when type is set or content-type is XML)
 
-| Check | Descripción |
+| Check | Description |
 |-------|-------------|
-| `xml-well-formed` | XML parseable |
-| `xml-root` | Root tag detectado (y no es `<html>`) |
+| `xml-well-formed` | XML is parseable |
+| `xml-root` | Root tag detected (rejects `<html>`) |
 
-### RSS (auto-detectado o con `--type rss`)
+### RSS (auto-detected)
 
-| Check | Descripción |
+| Check | Description |
 |-------|-------------|
-| `rss-channel` | `<channel>` existe |
-| `rss-title` | `<title>` no vacío |
-| `rss-link` | `<link>` no vacío |
-| `rss-items` | Al menos un `<item>` |
-| `rss-item-date` | Fechas en items parseables |
+| `rss-channel` | `<channel>` exists |
+| `rss-title` | `<title>` not empty |
+| `rss-link` | `<link>` not empty |
+| `rss-items` | At least one `<item>` |
+| `rss-item-date` | Item dates are parseable |
 
-### Atom (auto-detectado o con `--type atom`)
+### Atom (auto-detected)
 
-| Check | Descripción |
+| Check | Description |
 |-------|-------------|
-| `atom-title` | `<title>` existe |
-| `atom-link` | `<link>` con atributo `href` |
-| `atom-entries` | Al menos un `<entry>` |
-| `atom-entry-date` | Fechas (`updated`/`published`) parseables |
+| `atom-title` | `<title>` exists |
+| `atom-link` | `<link>` has `href` attribute |
+| `atom-entries` | At least one `<entry>` |
+| `atom-entry-date` | Dates (`updated`/`published`) are parseable |
 
-### Sitemap (auto-detectado o con `--type sitemap`)
+### Sitemap (auto-detected)
 
-| Check | Descripción |
+| Check | Description |
 |-------|-------------|
-| `sitemap-urls` | Al menos un `<url>` |
-| `sitemap-loc-empty` | Ningún `<loc>` vacío |
-| `sitemap-loc-url` | Todos los `<loc>` son URLs válidas (http/https) |
-| `sitemap-loc-duplicate` | Sin `<loc>` duplicados |
+| `sitemap-urls` | At least one `<url>` |
+| `sitemap-loc-empty` | No empty `<loc>` |
+| `sitemap-loc-url` | All `<loc>` are valid URLs |
+| `sitemap-loc-duplicate` | No duplicate `<loc>` |
 
-### Patrones prohibidos (default)
+### Sitemap Index (auto-detected)
 
-- `    at ` (stack traces JS/Python)
-- `Traceback (most recent call last)`
-- `Fatal error`
-- `Catchable fatal error`
-- `[object Object]`
+| Check | Description |
+|-------|-------------|
+| `sitemap-index-sitemaps` | At least one `<sitemap>` |
+| `sitemap-index-loc-empty` | No empty `<loc>` |
+| `sitemap-index-loc-url` | All `<loc>` are valid URLs |
 
-## Tests realizados
-
-### PASS (single URL)
-
-```
-npx obf validate https://hnrss.org/frontpage --type rss
-npx obf validate https://github.blog/feed/atom --type atom
-npx obf validate https://www.sitemaps.org/sitemap.xml --type sitemap
-```
-
-### PASS (batch)
-
-```
-npx obf validate --source ./feeds.txt --domain https://www.canal26.com
-npx obf validate --source ./feeds.txt --domain http://localhost
-```
-
-### PASS (discover + pipe)
-
-```
-npx obf discover https://www.canal26.com
-npx obf discover https://www.canal26.com | npx obf validate --source - --domain http://localhost
-npx obf discover https://www.canal26.com | npx obf validate --source - --domain http://localhost --recursive
-npx obf discover https://www.canal26.com > sitemaps.txt && npx obf validate --source sitemaps.txt --domain http://localhost
-```
-
-### FAIL
-
-```
-npx obf validate https://httpbin.org/status/500
-npx obf validate https://httpbin.org/status/404
-npx obf validate https://httpbin.org/html --type xml
-npx obf discover https://httpbin.org
-```
-
-## Arquitectura
+## Architecture
 
 ```
 src/
-├── index.js              # CLI entry point
-├── fetcher.js            # HTTP wrapper (fetch + timeout + redirects)
-├── validate.js           # Core de validación
+├── index.js        # CLI entry point (validate, check, discover)
+├── fetcher.js      # HTTP transport (fetch + timeout + redirects)
+├── validate.js     # Core validation orchestrator
+├── discover.js     # robots.txt parser and sitemap discovery
 └── validators/
-    └── xml.js            # XML parseo, RSS, Atom, sitemap validators
+    └── xml.js      # XML parse, RSS, Atom, sitemap validators
 ```
 
-### `fetcher.js`
+## Dependencies
 
-- Wrapper sobre `fetch` nativo de Node.js
-- Timeout configurable (default 15s)
-- User-Agent: `OBF-tester/0.1`
-- Sigue redirects automáticamente
-- Retorna `{ url, status, statusText, headers, contentType, body }`
+- `fast-xml-parser` — XML parsing and validation
 
-### `validate.js`
-
-- Función `validate(url, options)` asíncrona
-- Parámetros: `expectedContentType`, `forbiddenPatterns`, `timeout`, `type`
-- Retorna `{ url, passed: boolean, checks: [{ check, passed, detail }] }`
-
-### `validators/xml.js`
-
-- Usa `fast-xml-parser` para parseo
-- Detecta automáticamente el tipo: `rss`, `atom`, `sitemap`, `sitemap-index` o `xml`
-- Valida estructura específica de cada tipo de feed
-
-### `index.js`
-
-- CLI que parsea argumentos y ejecuta el comando `validate`
-- Exit code 0 si pasa, 1 si falla
-
-## Dependencias
-
-- `fast-xml-parser` — parseo y validación de XML
-
-## Licencia
+## License
 
 MIT
