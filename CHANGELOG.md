@@ -1,12 +1,20 @@
 # Changelog
 
+## [0.4.0] - 2026-07-01
+
+### Added
+
+- **Discover mode**: `npx obf discover <url>` — fetches robots.txt, extracts Sitemap URLs to stdout
+- **Stdin support**: `--source -` reads routes from stdin for pipe workflows
+- **Subcomandos**: `validate` y `discover` como comandos de primer nivel
+
 ## [0.3.0] - 2026-07-01
 
 ### Added
 
 - **Batch validate**: flag `--source <file>` para validar múltiples rutas desde archivo
 - **Flag `--domain`**: dominio base para rutas relativas en el archivo source
-- **`npm run validate` script**: comando estándar para ejecutar la herramienta
+- **`npx obf validate`**: binario como interfaz principal via npx
 
 ## [0.2.0] - 2026-07-01
 

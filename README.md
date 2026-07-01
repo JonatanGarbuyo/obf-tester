@@ -21,17 +21,27 @@ npm install
 ## Uso
 
 ```bash
-# validar una URL
+# validate a single URL
 npx obf validate <url>
 
-# validar con tipo específico
+# validate with specific type
 npx obf validate <url> --type rss
 
-# validar múltiples rutas desde archivo (con dominio base)
+# batch validate from file
 npx obf validate --source ./feeds.txt --domain https://www.example.com
 
-# validar múltiples URLs absolutas desde archivo (sin dominio)
+# batch from absolute URLs (no --domain needed)
 npx obf validate --source ./urls.txt
+
+# discover sitemaps from robots.txt
+npx obf discover https://www.example.com
+
+# pipe discover → validate (relative paths, --domain rewrites)
+npx obf discover https://www.example.com | npx obf validate --source - --domain http://localhost
+
+# save to file, then validate
+npx obf discover https://www.example.com > sitemaps.txt
+npx obf validate --source sitemaps.txt --domain http://localhost
 ```
 
 El exit code es `0` si todas las validaciones pasan, `1` si alguna falla.
@@ -48,6 +58,7 @@ https://url-absoluta.com/feed.xml
 - Rutas relativas requieren `--domain`
 - URLs absolutas se usan tal cual (o se reescriben con `--domain` si se especifica)
 - `--type` y `--content-type` aplican a todas las rutas del batch
+- `--source -` lee de stdin (útil con pipes)
 
 ### Options
 
@@ -55,7 +66,7 @@ https://url-absoluta.com/feed.xml
 |------|-------------|
 | `--type <type>` | Feed type: `xml`, `rss`, `atom`, `sitemap` |
 | `--content-type <type>` | Expected Content-Type |
-| `--source <file>` | File with routes (one per line) |
+| `--source <file>` | File with routes (one per line), `-` for stdin |
 | `--domain <url>` | Base domain for relative routes in source |
 
 ## Validaciones
@@ -129,12 +140,21 @@ npx obf validate --source ./feeds.txt --domain https://www.canal26.com
 npx obf validate --source ./feeds.txt --domain http://localhost
 ```
 
+### PASS (discover + pipe)
+
+```
+npx obf discover https://www.canal26.com
+npx obf discover https://www.canal26.com | npx obf validate --source - --domain http://localhost
+npx obf discover https://www.canal26.com > sitemaps.txt && npx obf validate --source sitemaps.txt --domain http://localhost
+```
+
 ### FAIL
 
 ```
 npx obf validate https://httpbin.org/status/500
 npx obf validate https://httpbin.org/status/404
 npx obf validate https://httpbin.org/html --type xml
+npx obf discover https://httpbin.org
 ```
 
 ## Arquitectura

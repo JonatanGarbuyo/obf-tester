@@ -2,6 +2,7 @@
 
 import { readFileSync } from 'node:fs';
 import { validate } from './validate.js';
+import { discover } from './discover.js';
 
 function printSingle({ url, passed, checks }) {
   const icon = passed ? '✓' : '✗';
@@ -44,8 +45,20 @@ function parseOptions(args) {
   return options;
 }
 
-function readSource(source) {
-  const content = readFileSync(source, 'utf-8');
+function readStdin() {
+  return new Promise((resolve) => {
+    if (process.stdin.isTTY) {
+      resolve('');
+      return;
+    }
+    const chunks = [];
+    process.stdin.on('data', chunk => chunks.push(chunk));
+    process.stdin.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+  });
+}
+
+async function readSource(source) {
+  const content = source === '-' ? await readStdin() : readFileSync(source, 'utf-8');
   const lines = [];
   for (const line of content.split('\n')) {
     const trimmed = line.trim();
@@ -101,7 +114,7 @@ async function runBatch(args) {
   const options = parseOptions(args);
   const { source, domain } = options;
 
-  const lines = readSource(source);
+  const lines = await readSource(source);
   if (lines.length === 0) {
     console.error(`Source "${source}" is empty`);
     process.exit(1);
@@ -130,11 +143,12 @@ async function runSingle(args) {
   if (!url || url.startsWith('--')) {
     console.error('Usage: npx obf validate <url> [options]');
     console.error('       npx obf validate --source <file> [--domain <url>]');
+    console.error('       npx obf discover <url>');
     console.error('');
     console.error('Options:');
     console.error('  --content-type <type>    Expected Content-Type (e.g. application/xml)');
     console.error('  --type <type>            Feed type: xml, rss, atom, sitemap');
-    console.error('  --source <file>          File with routes (one per line)');
+    console.error('  --source <file>          File with routes (one per line), "-" for stdin');
     console.error('  --domain <url>           Base domain for relative routes in source');
     process.exit(1);
   }
@@ -145,12 +159,38 @@ async function runSingle(args) {
   process.exit(result.passed ? 0 : 1);
 }
 
+async function runDiscover(args) {
+  const url = args[0];
+  if (!url) {
+    console.error('Usage: npx obf discover <url>');
+    process.exit(1);
+  }
+
+  const result = await discover(url);
+
+  if (result.sitemaps.length === 0) {
+    console.error(`No sitemaps found in ${result.source}${result.error ? ` (${result.error})` : ''}`);
+    process.exit(1);
+  }
+
+  for (const sm of result.sitemaps) {
+    console.log(sm);
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
+  const command = args[0];
 
-  if (args[0] !== 'validate') {
+  if (command === 'discover') {
+    await runDiscover(args.slice(1));
+    return;
+  }
+
+  if (command !== 'validate') {
     console.error('Usage: npx obf validate <url> [options]');
     console.error('       npx obf validate --source <file> [--domain <url>]');
+    console.error('       npx obf discover <url>');
     process.exit(1);
   }
 
