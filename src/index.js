@@ -341,7 +341,7 @@ async function main() {
   }
 }
 
-const isMain = process.argv[1] && import.meta.url.endsWith(process.argv[1]);
+const isMain = !process.env.VITEST;
 if (isMain) {
   main().catch(err => {
     console.error('Fatal:', err.message);
