@@ -23,6 +23,7 @@
   "license": "MIT",
   "dependencies": {
     "fast-xml-parser": "^5.9.3",
+    "fast-xml-validator": "^1.1.1",
     "yargs": "^18.0.0"
   },
   "devDependencies": {

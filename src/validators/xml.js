@@ -1,4 +1,5 @@
-import { XMLValidator, XMLParser } from 'fast-xml-parser';
+import { SyntaxValidator } from 'fast-xml-validator';
+import { XMLParser } from 'fast-xml-parser';
 
 function extractText(val) {
   if (!val) return '';
@@ -214,7 +215,13 @@ export function validateXml(body, options = {}) {
   const checks = [];
 
   // well-formed
-  const valid = XMLValidator.validate(body);
+  let valid;
+  try {
+    valid = SyntaxValidator.validate(body);
+  } catch (err) {
+    checks.push({ check: 'xml-well-formed', passed: false, detail: err.message });
+    return checks;
+  }
   if (valid !== true) {
     checks.push({ check: 'xml-well-formed', passed: false, detail: valid.err.msg });
     return checks;
