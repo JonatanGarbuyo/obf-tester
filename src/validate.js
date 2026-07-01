@@ -95,5 +95,5 @@ export async function validate(url, options = {}) {
 
   const passed = checks.every(c => c.passed);
 
-  return { url, passed, checks };
+  return { url, passed, checks, body, contentType };
 }

@@ -68,6 +68,7 @@ https://url-absoluta.com/feed.xml
 | `--content-type <type>` | Expected Content-Type |
 | `--source <file>` | File with routes (one per line), `-` for stdin |
 | `--domain <url>` | Base domain for relative routes in source |
+| `--recursive` | Follow `<sitemapindex>` children and validate each one |
 
 ## Validaciones
 
@@ -145,6 +146,7 @@ npx obf validate --source ./feeds.txt --domain http://localhost
 ```
 npx obf discover https://www.canal26.com
 npx obf discover https://www.canal26.com | npx obf validate --source - --domain http://localhost
+npx obf discover https://www.canal26.com | npx obf validate --source - --domain http://localhost --recursive
 npx obf discover https://www.canal26.com > sitemaps.txt && npx obf validate --source sitemaps.txt --domain http://localhost
 ```
 

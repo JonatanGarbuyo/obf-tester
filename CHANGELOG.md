@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0] - 2026-07-01
+
+### Added
+
+- **`--recursive` flag**: follows `<sitemapindex>` children and validates each sitemap automatically
+- **`validate()` now returns `body` and `contentType`**: enables recursive inspection without re-fetching
+
 ## [0.4.0] - 2026-07-01
 
 ### Added

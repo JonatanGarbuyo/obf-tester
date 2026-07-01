@@ -42,6 +42,8 @@ function parseOptions(args) {
     options.domain = normalizeUrl(args[domainIndex + 1]);
   }
 
+  options.recursive = args.includes('--recursive');
+
   return options;
 }
 
@@ -94,31 +96,43 @@ function resolveUrl(line, domain) {
   throw new Error(`Invalid path: "${line}" — must start with /, http://, or https://`);
 }
 
-function printBatchRow(index, total, url, result, duration) {
-  const status = result.passed ? 'PASS' : 'FAIL';
-  const icon = result.passed ? '✓' : '✗';
-  const feedType = result.checks.find(c => c.check === 'xml-root')?.detail?.match(/\((\w+)\)/)?.[1] || '--';
-
-  // find first failing check for details
+function extractDetail(result) {
   const firstFail = result.checks.find(c => !c.passed);
-  const detail = firstFail ? `${firstFail.check}: ${firstFail.detail}` : '';
-
-  const summary = result.url;
-  console.log(`${icon} ${summary}`);
-  if (detail) {
-    console.log(`  └ ${detail}`);
-  }
+  if (firstFail) return `${firstFail.check}: ${firstFail.detail}`;
+  const statusCheck = result.checks.find(c => c.check === 'status');
+  return statusCheck ? `${statusCheck.detail}` : '';
 }
 
-function printBatchSummary(results) {
-  const passed = results.filter(r => r.passed).length;
-  const total = results.length;
+function extractChildUrls(body) {
+  if (!body || (!body.includes('<sitemapindex') && !body.includes('<sitemapindex'))) {
+    return [];
+  }
+  const urls = [];
+  const regex = /<loc>(.*?)<\/loc>/g;
+  let match;
+  while ((match = regex.exec(body)) !== null) {
+    urls.push(match[1].trim());
+  }
+  return urls;
+}
+
+function printBatchRow(result, indent = 0) {
+  const icon = result.passed ? '✓' : '✗';
+  const pad = ' '.repeat(indent);
+  const detail = extractDetail(result);
+  const label = result.passed && indent > 0
+    ? new URL(result.url).search || new URL(result.url).pathname.split('/').pop()
+    : result.url;
+  console.log(`${pad}${icon} ${label}${detail ? `  ${detail}` : ''}`);
+}
+
+function printBatchSummary(passed, total) {
   console.log(`\nResult: ${passed}/${total} passed`);
 }
 
 async function runBatch(args) {
   const options = parseOptions(args);
-  const { source, domain } = options;
+  const { source, domain, recursive } = options;
 
   const lines = await readSource(source);
   if (lines.length === 0) {
@@ -127,20 +141,41 @@ async function runBatch(args) {
   }
 
   const urls = lines.map(line => resolveUrl(line, domain));
-  console.log(`Source: ${source} (${urls.length} routes${domain ? `, domain: ${domain}` : ''})\n`);
+  const mode = recursive ? ', recursive' : '';
+  console.log(`Source: ${source} (${urls.length} routes${domain ? `, domain: ${domain}` : ''}${mode})\n`);
 
-  const results = [];
-  for (let i = 0; i < urls.length; i++) {
-    const result = await validate(urls[i], {
+  const allResults = [];
+  let passed = 0;
+  let total = 0;
+
+  for (const url of urls) {
+    const result = await validate(url, {
       type: options.type,
       expectedContentType: options.expectedContentType,
     });
-    results.push(result);
-    printBatchRow(i + 1, urls.length, urls[i], result);
+    allResults.push(result);
+    total++;
+    if (result.passed) passed++;
+    printBatchRow(result);
+
+    if (recursive && result.body && result.contentType && result.contentType.includes('xml')) {
+      const childUrls = extractChildUrls(result.body);
+      for (const childUrl of childUrls) {
+        const childResolved = resolveUrl(childUrl, domain);
+        const child = await validate(childResolved, {
+          type: 'sitemap',
+          expectedContentType: options.expectedContentType,
+        });
+        allResults.push(child);
+        total++;
+        if (child.passed) passed++;
+        printBatchRow(child, 2);
+      }
+    }
   }
 
-  printBatchSummary(results);
-  process.exit(results.every(r => r.passed) ? 0 : 1);
+  printBatchSummary(passed, total);
+  process.exit(allResults.every(r => r.passed) ? 0 : 1);
 }
 
 async function runSingle(args) {
@@ -148,7 +183,7 @@ async function runSingle(args) {
 
   if (!url || url.startsWith('--')) {
     console.error('Usage: npx obf validate <url> [options]');
-    console.error('       npx obf validate --source <file> [--domain <url>]');
+    console.error('       npx obf validate --source <file> [--domain <url>] [--recursive]');
     console.error('       npx obf discover <url>');
     console.error('');
     console.error('Options:');
@@ -156,6 +191,7 @@ async function runSingle(args) {
     console.error('  --type <type>            Feed type: xml, rss, atom, sitemap');
     console.error('  --source <file>          File with routes (one per line), "-" for stdin');
     console.error('  --domain <url>           Base domain for relative routes in source');
+    console.error('  --recursive              Follow sitemap-index children');
     process.exit(1);
   }
 
@@ -195,7 +231,7 @@ async function main() {
 
   if (command !== 'validate') {
     console.error('Usage: npx obf validate <url> [options]');
-    console.error('       npx obf validate --source <file> [--domain <url>]');
+    console.error('       npx obf validate --source <file> [--domain <url>] [--recursive]');
     console.error('       npx obf discover <url>');
     process.exit(1);
   }
