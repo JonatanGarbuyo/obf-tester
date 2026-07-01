@@ -26,6 +26,9 @@ npx obf validate <url> --type rss
 # batch validate from file
 npx obf validate --source ./feeds.txt --domain http://localhost
 
+# validate a sitemap-index and follow its children
+npx obf validate "http://localhost/.../sitemap-index/?outputType=xml" --recursive --max-pagination 5
+
 # full check: discover + validate + recursive in one command
 npx obf check canal26.com
 npx obf check canal26.com --local
@@ -55,7 +58,8 @@ Run validations against one or more feed URLs.
 | `--type <type>` | Feed type: `xml`, `rss`, `atom`, `sitemap` |
 | `--source <file>` | File with routes (one per line), `-` for stdin |
 | `--domain <url>` | Base domain for relative routes in source |
-| `--recursive` | Follow `<sitemapindex>` children automatically |
+| `--recursive` | Follow `<sitemapindex>` children (works with `<url>` or `--source`) |
+| `--local` | Shorthand for `--domain http://localhost` |
 | `--max-concurrency <N>` | Concurrent requests (default 1) |
 | `--delay <ms>` | Delay between requests (default 300, overrides Crawl-Delay) |
 | `--max-pagination <N>` | Max children per sitemap-index (0 = all). Skips dates, paginations |

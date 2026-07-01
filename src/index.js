@@ -7,7 +7,7 @@ import { discover } from './discover.js';
 const DEFAULT_DELAY = 300;
 
 // Exported for testing
-export { normalizeUrl, resolveUrl, extractChildUrls, isProdUrl, parseOptions, mapConcurrent, readSource }
+export { normalizeUrl, resolveUrl, extractChildUrls, isProdUrl, parseOptions, mapConcurrent, readSource, validateAndRecurse }
 
 function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
@@ -169,6 +169,33 @@ function printBatchSummary(passed, total) {
   console.log(`\nResult: ${passed}/${total} passed`);
 }
 
+async function validateAndRecurse(url, options, domain, delayMs) {
+  const result = await validate(url, {
+    type: options.type,
+    expectedContentType: options.expectedContentType,
+  });
+  const all = [result];
+  printBatchRow(result);
+
+  if (result.body && result.contentType?.includes('xml')) {
+    const childUrls = extractChildUrls(result.body);
+    if (childUrls.length > 0) {
+      const sliced = options.maxPagination > 0 ? childUrls.slice(0, options.maxPagination) : childUrls;
+      const childResolved = sliced.map(cu => resolveUrl(cu, domain));
+      const childResults = await mapConcurrent(childResolved, options.maxConcurrency ?? 1, async (childUrl) => {
+        await sleep(delayMs);
+        return validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType });
+      });
+      for (const child of childResults) {
+        all.push(child);
+        printBatchRow(child, 2);
+      }
+    }
+  }
+
+  return all;
+}
+
 async function runBatch(args) {
   const options = parseOptions(args);
   const { source, domain, recursive, maxConcurrency } = options;
@@ -192,27 +219,16 @@ async function runBatch(args) {
   const allResults = [];
 
   for (const url of urls) {
-    const result = await validate(url, {
-      type: options.type,
-      expectedContentType: options.expectedContentType,
-    });
-    allResults.push(result);
-    printBatchRow(result);
-
-    if (recursive && result.body && result.contentType && result.contentType.includes('xml')) {
-      const childUrls = extractChildUrls(result.body);
-      if (childUrls.length === 0) continue;
-
-      const sliced = options.maxPagination > 0 ? childUrls.slice(0, options.maxPagination) : childUrls;
-      const childResolved = sliced.map(cu => resolveUrl(cu, domain));
-      const childResults = await mapConcurrent(childResolved, maxConcurrency, async (childUrl) => {
-        await sleep(delayMs);
-        return validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType });
+    if (recursive) {
+      const results = await validateAndRecurse(url, options, domain, delayMs);
+      allResults.push(...results);
+    } else {
+      const result = await validate(url, {
+        type: options.type,
+        expectedContentType: options.expectedContentType,
       });
-      for (const child of childResults) {
-        allResults.push(child);
-        printBatchRow(child, 2);
-      }
+      allResults.push(result);
+      printBatchRow(result);
     }
 
     await sleep(delayMs);
@@ -246,6 +262,24 @@ async function runSingle(args) {
   }
 
   const options = parseOptions(args);
+
+  if (options.recursive) {
+    const domain = options.local && !options.domain ? 'http://localhost' : options.domain;
+    const delayMs = options.delay ?? DEFAULT_DELAY;
+    const normalizedUrl = normalizeUrl(url);
+
+    if (!domain && isProdUrl(normalizedUrl)) {
+      console.warn('⚠  Warning: validating against production URLs (use --domain to override)\n');
+    }
+
+    console.log(`Validate: ${normalizedUrl}\n`);
+
+    const allResults = await validateAndRecurse(normalizedUrl, options, domain, delayMs);
+    const passed = allResults.filter(r => r.passed).length;
+    printBatchSummary(passed, allResults.length);
+    process.exit(allResults.every(r => r.passed) ? 0 : 1);
+  }
+
   const result = await validate(normalizeUrl(url), options);
   printSingle(result);
   process.exit(result.passed ? 0 : 1);
@@ -350,7 +384,7 @@ async function main() {
   }
 
   if (command !== 'validate') {
-    console.error('Usage: npx obf validate <url> [options]');
+    console.error('Usage: npx obf validate <url> [options] [--recursive]');
     console.error('       npx obf validate --source <file> [--domain <url>] [--recursive]');
     console.error('       npx obf discover <url>');
     console.error('       npx obf check <url> [--local] [--max-concurrency N] [--delay ms] [--max-pagination N]');

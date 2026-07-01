@@ -1,15 +1,18 @@
 # Changelog
 
+## [0.12.0] - 2026-07-01
+
+### Added
+
+- **`validate <url> --recursive`**: now supports `--recursive` to follow sitemap-index children. Works with `--max-pagination`, `--max-concurrency`, `--delay`, `--domain`, and `--local`
+- **`validateAndRecurse()` helper**: shared logic extracted for `runSingle --recursive`, `runBatch --recursive`, and testability
+
 ## [0.11.0] - 2026-07-01
 
 ### Added
 
 - **`--max-pagination <N>`**: limit children per sitemap-index (0 = all). Useful to skip paginations and dates
 - **Full URLs in output**: `printBatchRow` always shows complete URL, no more abbreviated params
-
-### Changed
-
-- **`check` usage**: shows `--max-pagination` flag in help
 
 ## [0.10.0] - 2026-07-01
 
