@@ -39,7 +39,7 @@ function parseOptions(args) {
 
   const domainIndex = args.indexOf('--domain');
   if (domainIndex !== -1 && args[domainIndex + 1]) {
-    options.domain = args[domainIndex + 1];
+    options.domain = normalizeUrl(args[domainIndex + 1]);
   }
 
   return options;
@@ -67,6 +67,12 @@ async function readSource(source) {
     }
   }
   return lines;
+}
+
+function normalizeUrl(url) {
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const isLocal = url.startsWith('localhost') || url.startsWith('127.0.0.1') || url.startsWith('0.0.0.0');
+  return `${isLocal ? 'http' : 'https'}://${url}`;
 }
 
 function resolveUrl(line, domain) {
@@ -154,7 +160,7 @@ async function runSingle(args) {
   }
 
   const options = parseOptions(args);
-  const result = await validate(url, options);
+  const result = await validate(normalizeUrl(url), options);
   printSingle(result);
   process.exit(result.passed ? 0 : 1);
 }
@@ -166,7 +172,7 @@ async function runDiscover(args) {
     process.exit(1);
   }
 
-  const result = await discover(url);
+  const result = await discover(normalizeUrl(url));
 
   if (result.sitemaps.length === 0) {
     console.error(`No sitemaps found in ${result.source}${result.error ? ` (${result.error})` : ''}`);
