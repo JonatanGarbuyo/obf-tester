@@ -21,19 +21,42 @@ npm install
 ## Uso
 
 ```bash
-# validación básica (HTTP + content-type + patrones prohibidos)
+# validar una URL
 npm run validate -- <url>
 
-# validación XML con auto-detección de tipo (RSS/Atom/sitemap)
-npm run validate -- <url> --type xml
-
-# validación forzando tipo específico
+# validar con tipo específico
 npm run validate -- <url> --type rss
-npm run validate -- <url> --type atom
-npm run validate -- <url> --type sitemap
+
+# validar múltiples rutas desde archivo (con dominio base)
+npm run validate -- --source ./feeds.txt --domain https://www.example.com
+
+# validar múltiples URLs absolutas desde archivo (sin dominio)
+npm run validate -- --source ./urls.txt
 ```
 
 El exit code es `0` si todas las validaciones pasan, `1` si alguna falla.
+
+### Formato del archivo (`--source`)
+
+```
+# comentarios y líneas vacías se ignoran
+/ruta/relativa/feed.xml
+/ruta/relativa/sitemap.xml?outputType=xml
+https://url-absoluta.com/feed.xml
+```
+
+- Rutas relativas requieren `--domain`
+- URLs absolutas se usan tal cual (o se reescriben con `--domain` si se especifica)
+- `--type` y `--content-type` aplican a todas las rutas del batch
+
+### Options
+
+| Flag | Descripción |
+|------|-------------|
+| `--type <type>` | Feed type: `xml`, `rss`, `atom`, `sitemap` |
+| `--content-type <type>` | Expected Content-Type |
+| `--source <file>` | File with routes (one per line) |
+| `--domain <url>` | Base domain for relative routes in source |
 
 ## Validaciones
 
@@ -91,32 +114,26 @@ El exit code es `0` si todas las validaciones pasan, `1` si alguna falla.
 
 ## Tests realizados
 
-### PASS
+### PASS (single URL)
 
 ```
-# RSS feed (HN)
 npm run validate -- https://hnrss.org/frontpage --type rss
-
-# Atom feed (GitHub Blog)
 npm run validate -- https://github.blog/feed/atom --type atom
-
-# Sitemap (sitemaps.org)
 npm run validate -- https://www.sitemaps.org/sitemap.xml --type sitemap
+```
 
-# HTML normal
-npm run validate -- https://httpbin.org/html --content-type text/html
+### PASS (batch)
+
+```
+npm run validate -- --source ./feeds.txt --domain https://www.canal26.com
+npm run validate -- --source ./feeds.txt --domain http://localhost
 ```
 
 ### FAIL
 
 ```
-# 500 Internal Server Error
 npm run validate -- https://httpbin.org/status/500
-
-# 404 Not Found
 npm run validate -- https://httpbin.org/status/404
-
-# HTML cuando se espera XML
 npm run validate -- https://httpbin.org/html --type xml
 ```
 

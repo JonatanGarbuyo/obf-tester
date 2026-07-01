@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.0] - 2026-07-01
+
+### Added
+
+- **Batch validate**: flag `--source <file>` para validar múltiples rutas desde archivo
+- **Flag `--domain`**: dominio base para rutas relativas en el archivo source
+- **`npm run validate` script**: comando estándar para ejecutar la herramienta
+
 ## [0.2.0] - 2026-07-01
 
 ### Added
