@@ -45,8 +45,8 @@ function parseOptions(args) {
   options.recursive = args.includes('--recursive');
   options.local = args.includes('--local');
 
-  const maxIndex = args.indexOf('--max');
-  options.max = maxIndex !== -1 && args[maxIndex + 1] !== undefined ? Number(args[maxIndex + 1]) : 3;
+  const mcIndex = args.indexOf('--max-concurrency');
+  options.maxConcurrency = mcIndex !== -1 && args[mcIndex + 1] !== undefined ? Number(args[mcIndex + 1]) : 10;
 
   return options;
 }
@@ -120,6 +120,20 @@ function extractChildUrls(body) {
   return urls;
 }
 
+async function mapConcurrent(items, concurrency, fn) {
+  const results = new Array(items.length);
+  let idx = 0;
+  async function worker() {
+    while (idx < items.length) {
+      const i = idx++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, () => worker());
+  await Promise.all(workers);
+  return results;
+}
+
 function printBatchRow(result, indent = 0) {
   const icon = result.passed ? '✓' : '✗';
   const pad = ' '.repeat(indent);
@@ -145,7 +159,7 @@ function printBatchSummary(passed, total) {
 
 async function runBatch(args) {
   const options = parseOptions(args);
-  const { source, domain, recursive } = options;
+  const { source, domain, recursive, maxConcurrency } = options;
 
   const lines = await readSource(source);
   if (lines.length === 0) {
@@ -159,12 +173,10 @@ async function runBatch(args) {
     console.warn('⚠  Warning: validating against production URLs (use --domain to override)\n');
   }
 
-  const mode = recursive ? ', recursive' : '';
+  const mode = recursive ? `, concurrency ${maxConcurrency}` : '';
   console.log(`Source: ${source} (${urls.length} routes${domain ? `, domain: ${domain}` : ''}${mode})\n`);
 
   const allResults = [];
-  let passed = 0;
-  let total = 0;
 
   for (const url of urls) {
     const result = await validate(url, {
@@ -172,31 +184,25 @@ async function runBatch(args) {
       expectedContentType: options.expectedContentType,
     });
     allResults.push(result);
-    total++;
-    if (result.passed) passed++;
     printBatchRow(result);
 
     if (recursive && result.body && result.contentType && result.contentType.includes('xml')) {
       const childUrls = extractChildUrls(result.body);
-      const max = options.max === 0 ? childUrls.length : options.max;
-      for (let i = 0; i < Math.min(childUrls.length, max); i++) {
-        const childResolved = resolveUrl(childUrls[i], domain);
-        const child = await validate(childResolved, {
-          type: 'sitemap',
-          expectedContentType: options.expectedContentType,
-        });
+      if (childUrls.length === 0) continue;
+
+      const childResolved = childUrls.map(cu => resolveUrl(cu, domain));
+      const childResults = await mapConcurrent(childResolved, maxConcurrency, (childUrl) =>
+        validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType })
+      );
+      for (const child of childResults) {
         allResults.push(child);
-        total++;
-        if (child.passed) passed++;
         printBatchRow(child, 2);
-      }
-      if (childUrls.length > max) {
-        console.log(`  ... and ${childUrls.length - max} more (use --max 0 to see all)`);
       }
     }
   }
 
-  printBatchSummary(passed, total);
+  const passed = allResults.filter(r => r.passed).length;
+  printBatchSummary(passed, allResults.length);
   process.exit(allResults.every(r => r.passed) ? 0 : 1);
 }
 
@@ -216,7 +222,7 @@ async function runSingle(args) {
     console.error('  --domain <url>           Base domain for relative routes in source');
     console.error('  --recursive              Follow sitemap-index children');
     console.error('  --local                  Shorthand for --domain http://localhost');
-    console.error('  --max <number>           Max recursive children (default 3, 0 = all)');
+    console.error('  --max-concurrency <N>    Concurrent requests for recursive children (default 10)');
     process.exit(1);
   }
 
@@ -229,7 +235,7 @@ async function runSingle(args) {
 async function runCheck(args) {
   const url = args[0];
   if (!url || url.startsWith('--')) {
-    console.error('Usage: npx obf check <url> [--domain <url>] [--local] [--max N]');
+    console.error('Usage: npx obf check <url> [--domain <url>] [--local] [--max-concurrency N]');
     process.exit(1);
   }
 
@@ -252,8 +258,6 @@ async function runCheck(args) {
   }
 
   const allResults = [];
-  let passed = 0;
-  let total = 0;
 
   for (const rUrl of resolved) {
     const result = await validate(rUrl, {
@@ -261,31 +265,25 @@ async function runCheck(args) {
       expectedContentType: options.expectedContentType,
     });
     allResults.push(result);
-    total++;
-    if (result.passed) passed++;
     printBatchRow(result);
 
     if (result.body && result.contentType?.includes('xml')) {
       const childUrls = extractChildUrls(result.body);
-      const max = options.max === 0 ? childUrls.length : options.max;
-      for (let i = 0; i < Math.min(childUrls.length, max); i++) {
-        const childResolved = resolveUrl(childUrls[i], domain);
-        const child = await validate(childResolved, {
-          type: 'sitemap',
-          expectedContentType: options.expectedContentType,
-        });
+      if (childUrls.length === 0) continue;
+
+      const childResolved = childUrls.map(cu => resolveUrl(cu, domain));
+      const childResults = await mapConcurrent(childResolved, options.maxConcurrency, (childUrl) =>
+        validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType })
+      );
+      for (const child of childResults) {
         allResults.push(child);
-        total++;
-        if (child.passed) passed++;
         printBatchRow(child, 2);
-      }
-      if (childUrls.length > max) {
-        console.log(`  ... and ${childUrls.length - max} more (use --max 0 to see all)`);
       }
     }
   }
 
-  printBatchSummary(passed, total);
+  const passed = allResults.filter(r => r.passed).length;
+  printBatchSummary(passed, allResults.length);
   process.exit(allResults.every(r => r.passed) ? 0 : 1);
 }
 
@@ -326,7 +324,7 @@ async function main() {
     console.error('Usage: npx obf validate <url> [options]');
     console.error('       npx obf validate --source <file> [--domain <url>] [--recursive]');
     console.error('       npx obf discover <url>');
-    console.error('       npx obf check <url> [--local] [--max N]');
+    console.error('       npx obf check <url> [--local] [--max-concurrency N]');
     process.exit(1);
   }
 

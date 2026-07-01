@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.0] - 2026-07-01
+
+### Added
+
+- **`--max-concurrency <N>`**: parallelizes recursive child validation (default 10), maintains output order
+- **`mapConcurrent` helper**: runs async tasks in parallel batches with order preservation
+- Removed `--max` limit — all children are validated with concurrency instead
+
 ## [0.6.0] - 2026-07-01
 
 ### Added
