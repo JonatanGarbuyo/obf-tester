@@ -8,8 +8,7 @@
     "obf": "./src/index.js"
   },
   "scripts": {
-    "test": "node --test",
-    "validate": "node src/index.js validate"
+    "test": "node --test"
   },
   "keywords": [
     "feed",

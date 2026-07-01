@@ -128,8 +128,8 @@ async function runSingle(args) {
   const url = args[0];
 
   if (!url || url.startsWith('--')) {
-    console.error('Usage: npm run validate -- <url> [options]');
-    console.error('       npm run validate -- --source <file> [--domain <url>]');
+    console.error('Usage: npx obf validate <url> [options]');
+    console.error('       npx obf validate --source <file> [--domain <url>]');
     console.error('');
     console.error('Options:');
     console.error('  --content-type <type>    Expected Content-Type (e.g. application/xml)');
@@ -149,8 +149,8 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (args[0] !== 'validate') {
-    console.error('Usage: npm run validate -- <url> [options]');
-    console.error('       npm run validate -- --source <file> [--domain <url>]');
+    console.error('Usage: npx obf validate <url> [options]');
+    console.error('       npx obf validate --source <file> [--domain <url>]');
     process.exit(1);
   }
 

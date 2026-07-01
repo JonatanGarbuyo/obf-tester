@@ -22,16 +22,16 @@ npm install
 
 ```bash
 # validar una URL
-npm run validate -- <url>
+npx obf validate <url>
 
 # validar con tipo específico
-npm run validate -- <url> --type rss
+npx obf validate <url> --type rss
 
 # validar múltiples rutas desde archivo (con dominio base)
-npm run validate -- --source ./feeds.txt --domain https://www.example.com
+npx obf validate --source ./feeds.txt --domain https://www.example.com
 
 # validar múltiples URLs absolutas desde archivo (sin dominio)
-npm run validate -- --source ./urls.txt
+npx obf validate --source ./urls.txt
 ```
 
 El exit code es `0` si todas las validaciones pasan, `1` si alguna falla.
@@ -117,24 +117,24 @@ https://url-absoluta.com/feed.xml
 ### PASS (single URL)
 
 ```
-npm run validate -- https://hnrss.org/frontpage --type rss
-npm run validate -- https://github.blog/feed/atom --type atom
-npm run validate -- https://www.sitemaps.org/sitemap.xml --type sitemap
+npx obf validate https://hnrss.org/frontpage --type rss
+npx obf validate https://github.blog/feed/atom --type atom
+npx obf validate https://www.sitemaps.org/sitemap.xml --type sitemap
 ```
 
 ### PASS (batch)
 
 ```
-npm run validate -- --source ./feeds.txt --domain https://www.canal26.com
-npm run validate -- --source ./feeds.txt --domain http://localhost
+npx obf validate --source ./feeds.txt --domain https://www.canal26.com
+npx obf validate --source ./feeds.txt --domain http://localhost
 ```
 
 ### FAIL
 
 ```
-npm run validate -- https://httpbin.org/status/500
-npm run validate -- https://httpbin.org/status/404
-npm run validate -- https://httpbin.org/html --type xml
+npx obf validate https://httpbin.org/status/500
+npx obf validate https://httpbin.org/status/404
+npx obf validate https://httpbin.org/html --type xml
 ```
 
 ## Arquitectura
