@@ -1,6 +1,7 @@
 import { validate } from '../validate.js'
-import { sleep, normalizeUrl, resolveUrl, isProdUrl } from '../http.js'
-import { extractChildUrls, mapConcurrent, readSource } from '../extract.js'
+import { sleep, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent } from '../http.js'
+import { extractChildUrls } from '../parsers/sitemap.js'
+import { readSource } from '../source.js'
 import * as logger from '../logger.js'
 
 const DEFAULT_DELAY = 300

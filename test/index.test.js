@@ -6,11 +6,11 @@ import {
   isProdUrl,
 } from '../src/http.js'
 
-import {
-  extractChildUrls,
-  mapConcurrent,
-  readSource,
-} from '../src/extract.js'
+import { extractChildUrls } from '../src/parsers/sitemap.js'
+
+import { mapConcurrent } from '../src/http.js'
+
+import { readSource } from '../src/source.js'
 
 const mockFetchUrl = vi.hoisted(() => vi.fn())
 

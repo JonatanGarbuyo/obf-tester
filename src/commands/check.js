@@ -1,7 +1,7 @@
 import { validate } from '../validate.js'
-import { discover } from '../discover.js'
-import { sleep, normalizeUrl, resolveUrl, isProdUrl } from '../http.js'
-import { extractChildUrls, mapConcurrent } from '../extract.js'
+import { discover } from '../parsers/robots.js'
+import { sleep, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent } from '../http.js'
+import { extractChildUrls } from '../parsers/sitemap.js'
 import * as logger from '../logger.js'
 
 const DEFAULT_DELAY = 300

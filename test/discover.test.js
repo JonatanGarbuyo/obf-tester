@@ -6,7 +6,7 @@ vi.mock('../src/http.js', () => ({
   fetchUrl: mockFetchUrl,
 }))
 
-import { discover } from '../src/discover.js'
+import { discover } from '../src/parsers/robots.js'
 
 beforeEach(() => {
   vi.clearAllMocks()

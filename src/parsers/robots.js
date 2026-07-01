@@ -1,4 +1,4 @@
-import { fetchUrl, FetchError } from './http.js';
+import { fetchUrl, FetchError } from '../http.js';
 
 export async function discover(url) {
   const base = new URL(url);
@@ -19,14 +19,12 @@ export async function discover(url) {
 
   const body = response.body;
 
-  // Extract Crawl-Delay (value in seconds, convert to ms)
   let crawlDelay = null;
   const cdMatch = body.match(/^Crawl-Delay:[ \t]*(\d+(?:\.\d+)?)$/im);
   if (cdMatch) {
     crawlDelay = Math.round(parseFloat(cdMatch[1]) * 1000);
   }
 
-  // Extract Sitemap entries
   const sitemaps = [];
   const regex = /^Sitemap:[ \t]*(.+)$/gim;
   let match;

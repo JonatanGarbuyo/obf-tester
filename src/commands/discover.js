@@ -1,4 +1,4 @@
-import { discover } from '../discover.js'
+import { discover } from '../parsers/robots.js'
 import { normalizeUrl } from '../http.js'
 import * as logger from '../logger.js'
 
