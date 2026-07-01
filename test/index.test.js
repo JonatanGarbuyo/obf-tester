@@ -1,21 +1,20 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+import {
+  normalizeUrl,
+  resolveUrl,
+  extractChildUrls,
+  isProdUrl,
+  mapConcurrent,
+} from '../src/utils.js'
+
 const mockFetchUrl = vi.hoisted(() => vi.fn())
 
 vi.mock('../src/fetcher.js', () => ({
   fetchUrl: mockFetchUrl,
 }))
 
-import {
-  normalizeUrl,
-  resolveUrl,
-  extractChildUrls,
-  isProdUrl,
-  parseOptions,
-  mapConcurrent,
-  readSource,
-  validateAndRecurse,
-} from '../src/index.js'
+import { readSource, validateAndRecurse } from '../src/runner.js'
 
 function mockResponse(overrides = {}) {
   return {
@@ -156,84 +155,6 @@ describe('isProdUrl', () => {
   })
 })
 
-// --------------- parseOptions ---------------
-
-describe('parseOptions', () => {
-  it('parses --type', () => {
-    const opts = parseOptions(['--type', 'rss'])
-    expect(opts.type).toBe('rss')
-  })
-
-  it('sets expectedContentType when --type is given', () => {
-    const opts = parseOptions(['--type', 'rss'])
-    expect(opts.expectedContentType).toBe('application/xml')
-  })
-
-  it('parses --domain', () => {
-    const opts = parseOptions(['--domain', 'http://localhost'])
-    expect(opts.domain).toBe('http://localhost')
-  })
-
-  it('parses --source', () => {
-    const opts = parseOptions(['--source', './feeds.txt'])
-    expect(opts.source).toBe('./feeds.txt')
-  })
-
-  it('parses --recursive', () => {
-    const opts = parseOptions(['--recursive'])
-    expect(opts.recursive).toBe(true)
-  })
-
-  it('parses --local', () => {
-    const opts = parseOptions(['--local'])
-    expect(opts.local).toBe(true)
-  })
-
-  it('parses --max-concurrency', () => {
-    const opts = parseOptions(['--max-concurrency', '20'])
-    expect(opts.maxConcurrency).toBe(20)
-  })
-
-  it('defaults maxConcurrency to 1', () => {
-    const opts = parseOptions([])
-    expect(opts.maxConcurrency).toBe(1)
-  })
-
-  it('defaults delay to undefined', () => {
-    const opts = parseOptions([])
-    expect(opts.delay).toBeUndefined()
-  })
-
-  it('parses --delay', () => {
-    const opts = parseOptions(['--delay', '500'])
-    expect(opts.delay).toBe(500)
-  })
-
-  it('defaults maxPagination to 0', () => {
-    const opts = parseOptions([])
-    expect(opts.maxPagination).toBe(0)
-  })
-
-  it('parses --max-pagination', () => {
-    const opts = parseOptions(['--max-pagination', '5'])
-    expect(opts.maxPagination).toBe(5)
-  })
-
-  it('parses --content-type', () => {
-    const opts = parseOptions(['--content-type', 'application/json'])
-    expect(opts.expectedContentType).toBe('application/json')
-  })
-
-  it('returns empty options for no args', () => {
-    const opts = parseOptions([])
-    expect(opts.recursive).toBe(false)
-    expect(opts.local).toBe(false)
-    expect(opts.source).toBeUndefined()
-    expect(opts.domain).toBeUndefined()
-    expect(opts.type).toBeUndefined()
-  })
-})
-
 // --------------- mapConcurrent ---------------
 
 describe('mapConcurrent', () => {
@@ -263,14 +184,6 @@ describe('mapConcurrent', () => {
     expect(order.sort((a, b) => a - b)).toEqual([1, 2, 3])
   })
 })
-
-// --------------- readSource ---------------
-
-const mockReadFileSync = vi.hoisted(() => vi.fn())
-
-vi.mock('node:fs', () => ({
-  readFileSync: mockReadFileSync,
-}))
 
 // --------------- validateAndRecurse ---------------
 
@@ -329,6 +242,14 @@ describe('validateAndRecurse', () => {
     expect(mockFetchUrl).toHaveBeenCalledTimes(3)
   })
 })
+
+// --------------- readSource ---------------
+
+const mockReadFileSync = vi.hoisted(() => vi.fn())
+
+vi.mock('node:fs', () => ({
+  readFileSync: mockReadFileSync,
+}))
 
 describe('readSource', () => {
   beforeEach(() => {

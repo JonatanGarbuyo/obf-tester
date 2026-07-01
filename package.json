@@ -22,7 +22,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "fast-xml-parser": "^5.9.3"
+    "fast-xml-parser": "^5.9.3",
+    "yargs": "^18.0.0"
   },
   "devDependencies": {
     "vitest": "^4.1.9"
