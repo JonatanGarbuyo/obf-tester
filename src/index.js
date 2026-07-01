@@ -126,6 +126,15 @@ function printBatchRow(result, indent = 0) {
   console.log(`${pad}${icon} ${label}${detail ? `  ${detail}` : ''}`);
 }
 
+function isProdUrl(url) {
+  try {
+    const host = new URL(url).hostname;
+    return host !== 'localhost' && host !== '127.0.0.1' && host !== '0.0.0.0';
+  } catch {
+    return true;
+  }
+}
+
 function printBatchSummary(passed, total) {
   console.log(`\nResult: ${passed}/${total} passed`);
 }
@@ -141,6 +150,11 @@ async function runBatch(args) {
   }
 
   const urls = lines.map(line => resolveUrl(line, domain));
+
+  if (!domain && urls.some(u => isProdUrl(u))) {
+    console.warn('⚠  Warning: validating against production URLs (use --domain to override)\n');
+  }
+
   const mode = recursive ? ', recursive' : '';
   console.log(`Source: ${source} (${urls.length} routes${domain ? `, domain: ${domain}` : ''}${mode})\n`);
 
