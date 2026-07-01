@@ -1,0 +1,11 @@
+# Feed routes — one per line
+# Lines starting with # and blank lines are ignored
+# Relative paths require --domain flag
+# Absolute URLs (http/https) work as-is
+
+/arc/outboundfeeds/sitemap/
+/arc/outboundfeeds/sitemap-index/?outputType=xml
+/arc/outboundfeeds/sitemap-news-index/?outputType=xml
+/arc/outboundfeeds/sitemap-section-index/?outputType=xml
+/arc/outboundfeeds/google-news-feed/
+/robots.txt
