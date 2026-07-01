@@ -169,9 +169,19 @@ describe('parseOptions', () => {
     expect(opts.maxConcurrency).toBe(20)
   })
 
-  it('defaults maxConcurrency to 3', () => {
+  it('defaults maxConcurrency to 1', () => {
     const opts = parseOptions([])
-    expect(opts.maxConcurrency).toBe(3)
+    expect(opts.maxConcurrency).toBe(1)
+  })
+
+  it('defaults delay to undefined', () => {
+    const opts = parseOptions([])
+    expect(opts.delay).toBeUndefined()
+  })
+
+  it('parses --delay', () => {
+    const opts = parseOptions(['--delay', '500'])
+    expect(opts.delay).toBe(500)
   })
 
   it('parses --content-type', () => {

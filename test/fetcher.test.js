@@ -88,7 +88,7 @@ describe('fetchUrl 429 retry', () => {
       .mockResolvedValueOnce(mockFetchResponse({ status: 200 }))
 
     const promise = fetchUrl('http://test.com')
-    await vi.advanceTimersByTimeAsync(2000)
+    await vi.runAllTimersAsync()
 
     const result = await promise
     expect(result.status).toBe(200)
@@ -102,7 +102,7 @@ describe('fetchUrl 429 retry', () => {
       .mockResolvedValue(mockFetchResponse({ status: 429, body: 'too many' }))
 
     const promise = fetchUrl('http://test.com')
-    await vi.advanceTimersByTimeAsync(8000)
+    await vi.runAllTimersAsync()
 
     const result = await promise
     expect(result.status).toBe(429)

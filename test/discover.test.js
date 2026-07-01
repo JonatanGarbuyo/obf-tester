@@ -102,4 +102,38 @@ Sitemap:   `,
     const result = await discover('https://example.com')
     expect(result.sitemaps).toEqual(['https://example.com/lowercase.xml'])
   })
+
+  it('returns null crawlDelay when not present', async () => {
+    mockFetchUrl.mockResolvedValue(mockFetchResponse({
+      body: 'Sitemap: https://example.com/sitemap.xml',
+    }))
+    const result = await discover('https://example.com')
+    expect(result.crawlDelay).toBeNull()
+  })
+
+  it('extracts Crawl-Delay in seconds and converts to ms', async () => {
+    mockFetchUrl.mockResolvedValue(mockFetchResponse({
+      body: `User-agent: *
+Crawl-Delay: 5
+Sitemap: https://example.com/sitemap.xml`,
+    }))
+    const result = await discover('https://example.com')
+    expect(result.crawlDelay).toBe(5000)
+  })
+
+  it('extracts fractional Crawl-Delay', async () => {
+    mockFetchUrl.mockResolvedValue(mockFetchResponse({
+      body: `User-agent: *
+Crawl-Delay: 1.5
+Sitemap: https://example.com/sitemap.xml`,
+    }))
+    const result = await discover('https://example.com')
+    expect(result.crawlDelay).toBe(1500)
+  })
+
+  it('returns crawlDelay null on fetch error', async () => {
+    mockFetchUrl.mockRejectedValue(new Error('ENOTFOUND'))
+    const result = await discover('https://example.com')
+    expect(result.crawlDelay).toBeNull()
+  })
 })

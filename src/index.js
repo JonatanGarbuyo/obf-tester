@@ -4,8 +4,14 @@ import { readFileSync } from 'node:fs';
 import { validate } from './validate.js';
 import { discover } from './discover.js';
 
+const DEFAULT_DELAY = 300;
+
 // Exported for testing
 export { normalizeUrl, resolveUrl, extractChildUrls, isProdUrl, parseOptions, mapConcurrent, readSource }
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
 
 function printSingle({ url, passed, checks }) {
   const icon = passed ? '✓' : '✗';
@@ -49,7 +55,10 @@ function parseOptions(args) {
   options.local = args.includes('--local');
 
   const mcIndex = args.indexOf('--max-concurrency');
-  options.maxConcurrency = mcIndex !== -1 && args[mcIndex + 1] !== undefined ? Number(args[mcIndex + 1]) : 3;
+  options.maxConcurrency = mcIndex !== -1 && args[mcIndex + 1] !== undefined ? Number(args[mcIndex + 1]) : 1;
+
+  const delayIndex = args.indexOf('--delay');
+  options.delay = delayIndex !== -1 && args[delayIndex + 1] !== undefined ? Number(args[delayIndex + 1]) : undefined;
 
   return options;
 }
@@ -163,6 +172,7 @@ function printBatchSummary(passed, total) {
 async function runBatch(args) {
   const options = parseOptions(args);
   const { source, domain, recursive, maxConcurrency } = options;
+  const delayMs = options.delay ?? DEFAULT_DELAY;
 
   const lines = await readSource(source);
   if (lines.length === 0) {
@@ -176,7 +186,7 @@ async function runBatch(args) {
     console.warn('⚠  Warning: validating against production URLs (use --domain to override)\n');
   }
 
-  const mode = recursive ? `, concurrency ${maxConcurrency}` : '';
+  const mode = recursive ? `, concurrency ${maxConcurrency}, delay ${delayMs}ms` : '';
   console.log(`Source: ${source} (${urls.length} routes${domain ? `, domain: ${domain}` : ''}${mode})\n`);
 
   const allResults = [];
@@ -194,14 +204,17 @@ async function runBatch(args) {
       if (childUrls.length === 0) continue;
 
       const childResolved = childUrls.map(cu => resolveUrl(cu, domain));
-      const childResults = await mapConcurrent(childResolved, maxConcurrency, (childUrl) =>
-        validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType })
-      );
+      const childResults = await mapConcurrent(childResolved, maxConcurrency, async (childUrl) => {
+        await sleep(delayMs);
+        return validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType });
+      });
       for (const child of childResults) {
         allResults.push(child);
         printBatchRow(child, 2);
       }
     }
+
+    await sleep(delayMs);
   }
 
   const passed = allResults.filter(r => r.passed).length;
@@ -225,7 +238,8 @@ async function runSingle(args) {
     console.error('  --domain <url>           Base domain for relative routes in source');
     console.error('  --recursive              Follow sitemap-index children');
     console.error('  --local                  Shorthand for --domain http://localhost');
-    console.error('  --max-concurrency <N>    Concurrent requests for recursive children (default 3)');
+    console.error('  --max-concurrency <N>    Concurrent requests (default 1)');
+    console.error('  --delay <ms>             Delay between requests (default 300)');
     process.exit(1);
   }
 
@@ -238,7 +252,7 @@ async function runSingle(args) {
 async function runCheck(args) {
   const url = args[0];
   if (!url || url.startsWith('--')) {
-    console.error('Usage: npx obf check <url> [--domain <url>] [--local] [--max-concurrency N]');
+    console.error('Usage: npx obf check <url> [--domain <url>] [--local] [--max-concurrency N] [--delay ms]');
     process.exit(1);
   }
 
@@ -246,15 +260,21 @@ async function runCheck(args) {
   const domain = options.local && !options.domain ? 'http://localhost' : options.domain;
   const normalizedUrl = normalizeUrl(url);
 
-  const { sitemaps, source, error } = await discover(normalizedUrl);
+  const { sitemaps, source, error, crawlDelay } = await discover(normalizedUrl);
   if (sitemaps.length === 0) {
     console.error(`No sitemaps found in ${source}${error ? ` (${error})` : ''}`);
     process.exit(1);
   }
 
   const resolved = sitemaps.map(sm => resolveUrl(sm, domain));
+  const delayMs = options.delay ?? (crawlDelay ?? DEFAULT_DELAY);
 
   console.log(`Check: ${normalizedUrl}\n`);
+
+  let info = `${resolved.length} sitemaps`;
+  if (crawlDelay) info += `, Crawl-Delay ${crawlDelay}ms`;
+  info += `, delay ${delayMs}ms`;
+  console.log(`  ${info}\n`);
 
   if (!domain && resolved.some(u => isProdUrl(u))) {
     console.warn('⚠  Warning: validating against production URLs (use --domain or --local to override)\n');
@@ -275,14 +295,17 @@ async function runCheck(args) {
       if (childUrls.length === 0) continue;
 
       const childResolved = childUrls.map(cu => resolveUrl(cu, domain));
-      const childResults = await mapConcurrent(childResolved, options.maxConcurrency, (childUrl) =>
-        validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType })
-      );
+      const childResults = await mapConcurrent(childResolved, options.maxConcurrency, async (childUrl) => {
+        await sleep(delayMs);
+        return validate(childUrl, { type: 'sitemap', expectedContentType: options.expectedContentType });
+      });
       for (const child of childResults) {
         allResults.push(child);
         printBatchRow(child, 2);
       }
     }
+
+    await sleep(delayMs);
   }
 
   const passed = allResults.filter(r => r.passed).length;
@@ -327,7 +350,7 @@ async function main() {
     console.error('Usage: npx obf validate <url> [options]');
     console.error('       npx obf validate --source <file> [--domain <url>] [--recursive]');
     console.error('       npx obf discover <url>');
-    console.error('       npx obf check <url> [--local] [--max-concurrency N]');
+    console.error('       npx obf check <url> [--local] [--max-concurrency N] [--delay ms]');
     process.exit(1);
   }
 

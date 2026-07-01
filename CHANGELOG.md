@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.10.0] - 2026-07-01
+
+### Added
+
+- **Crawl-Delay support**: `discover()` extracts `Crawl-Delay` from robots.txt, used as delay between requests
+- **`--delay <ms>` flag**: override delay between requests (default 300ms)
+- **`sleep()` helper**: awaitable delay function for rate-limited loops
+
+### Changed
+
+- **Default concurrency 3→1**: serial child validation by default to protect upstream
+- **`check` output**: shows sitemap count, Crawl-Delay, and effective delay
+
+### Fixed
+
+- **`discover` error shape**: now returns `crawlDelay: null` consistently on errors
+
 ## [0.9.0] - 2026-07-01
 
 ### Changed
