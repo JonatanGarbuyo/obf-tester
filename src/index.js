@@ -49,7 +49,7 @@ function parseOptions(args) {
   options.local = args.includes('--local');
 
   const mcIndex = args.indexOf('--max-concurrency');
-  options.maxConcurrency = mcIndex !== -1 && args[mcIndex + 1] !== undefined ? Number(args[mcIndex + 1]) : 10;
+  options.maxConcurrency = mcIndex !== -1 && args[mcIndex + 1] !== undefined ? Number(args[mcIndex + 1]) : 3;
 
   return options;
 }
@@ -225,7 +225,7 @@ async function runSingle(args) {
     console.error('  --domain <url>           Base domain for relative routes in source');
     console.error('  --recursive              Follow sitemap-index children');
     console.error('  --local                  Shorthand for --domain http://localhost');
-    console.error('  --max-concurrency <N>    Concurrent requests for recursive children (default 10)');
+    console.error('  --max-concurrency <N>    Concurrent requests for recursive children (default 3)');
     process.exit(1);
   }
 

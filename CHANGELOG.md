@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.0] - 2026-07-01
+
+### Changed
+
+- **Default concurrency 10→3**: reduces pressure on local Fusion during `--recursive`
+- **429 retry with backoff**: `fetcher.js` retries 3 times with delays (1s, 2s, 4s + jitter)
+- Usage examples updated in README
+
 ## [0.8.0] - 2026-07-01
 
 ### Added

@@ -1,4 +1,7 @@
 const DEFAULT_TIMEOUT = 15_000;
+const MAX_RETRIES = 3;
+const RETRY_DELAYS = [1_000, 2_000, 4_000];
+const JITTER_MAX = 500;
 
 export class FetchError extends Error {
   constructor(message, { status, statusText, url } = {}) {
@@ -13,36 +16,45 @@ export class FetchError extends Error {
 export async function fetchUrl(url, options = {}) {
   const { timeout = DEFAULT_TIMEOUT, headers = {} } = options;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
 
-  try {
-    const response = await fetch(url, {
-      signal: controller.signal,
-      headers: {
-        'User-Agent': 'OBF-tester/0.1',
-        ...headers,
-      },
-      redirect: 'follow',
-    });
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'OBF-tester/0.1',
+          ...headers,
+        },
+        redirect: 'follow',
+      });
 
-    const body = await response.text();
-    const contentType = response.headers.get('content-type') || '';
+      if (response.status === 429 && attempt < MAX_RETRIES) {
+        await response.text();
+        const delay = RETRY_DELAYS[attempt] + Math.random() * JITTER_MAX;
+        await new Promise(r => setTimeout(r, delay));
+        continue;
+      }
 
-    return {
-      url: response.url,
-      status: response.status,
-      statusText: response.statusText,
-      headers: Object.fromEntries(response.headers),
-      contentType: contentType.split(';')[0].trim(),
-      body,
-    };
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      throw new FetchError(`Timeout after ${timeout}ms`, { url });
+      const body = await response.text();
+      const contentType = response.headers.get('content-type') || '';
+
+      return {
+        url: response.url,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers),
+        contentType: contentType.split(';')[0].trim(),
+        body,
+      };
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        throw new FetchError(`Timeout after ${timeout}ms`, { url });
+      }
+      throw new FetchError(err.message, { url });
+    } finally {
+      clearTimeout(timer);
     }
-    throw new FetchError(err.message, { url });
-  } finally {
-    clearTimeout(timer);
   }
 }

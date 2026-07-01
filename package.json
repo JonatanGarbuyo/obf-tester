@@ -1,6 +1,6 @@
 {
   "name": "obf-tester",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "CMS-agnostic CLI tool to validate outbound feeds across sites",
   "type": "module",
   "main": "src/index.js",

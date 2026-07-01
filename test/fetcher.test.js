@@ -80,6 +80,46 @@ describe('fetchUrl', () => {
   })
 })
 
+describe('fetchUrl 429 retry', () => {
+  it('succeeds after 429 retry', async () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(mockFetchResponse({ status: 429, body: 'too many' }))
+      .mockResolvedValueOnce(mockFetchResponse({ status: 200 }))
+
+    const promise = fetchUrl('http://test.com')
+    await vi.advanceTimersByTimeAsync(2000)
+
+    const result = await promise
+    expect(result.status).toBe(200)
+    expect(spy).toHaveBeenCalledTimes(2)
+    vi.useRealTimers()
+  })
+
+  it('returns 429 after exhausting retries', async () => {
+    vi.useFakeTimers()
+    const spy = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValue(mockFetchResponse({ status: 429, body: 'too many' }))
+
+    const promise = fetchUrl('http://test.com')
+    await vi.advanceTimersByTimeAsync(8000)
+
+    const result = await promise
+    expect(result.status).toBe(429)
+    expect(spy).toHaveBeenCalledTimes(4)
+    vi.useRealTimers()
+  })
+
+  it('does not retry on non-429 errors', async () => {
+    const spy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockFetchResponse({ status: 500 })
+    )
+    const result = await fetchUrl('http://test.com')
+    expect(result.status).toBe(500)
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('fetchUrl error handling', () => {
   it('throws FetchError on timeout', async () => {
     vi.spyOn(globalThis, 'fetch').mockRejectedValue(

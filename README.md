@@ -29,7 +29,9 @@ npx obf validate --source ./feeds.txt --domain http://localhost
 # full check: discover + validate + recursive in one command
 npx obf check canal26.com
 npx obf check canal26.com --local
-npx obf check canal26.com --local --max-concurrency 20
+npx obf check canal26.com --local                    # default concurrency 3
+npx obf check canal26.com --local --max-concurrency 1 # serial
+npx obf check canal26.com --local --max-concurrency 5 # más agresivo
 
 # discover sitemap URLs from robots.txt
 npx obf discover canal26.com
@@ -53,7 +55,7 @@ Run validations against one or more feed URLs.
 | `--source <file>` | File with routes (one per line), `-` for stdin |
 | `--domain <url>` | Base domain for relative routes in source |
 | `--recursive` | Follow `<sitemapindex>` children automatically |
-| `--max-concurrency <N>` | Concurrent requests for recursive children (default 10) |
+| `--max-concurrency <N>` | Concurrent requests for recursive children (default 3) |
 
 ### `check`
 
@@ -64,7 +66,7 @@ Discover + validate + recursive in one command. Shortcut that reads robots.txt, 
 | `<url>` | Site URL (protocol optional, defaults to https) |
 | `--domain <url>` | Override domain for all routes |
 | `--local` | Shorthand for `--domain http://localhost` |
-| `--max-concurrency <N>` | Concurrent requests for recursive children (default 10) |
+| `--max-concurrency <N>` | Concurrent requests for recursive children (default 3) |
 
 ### `discover`
 

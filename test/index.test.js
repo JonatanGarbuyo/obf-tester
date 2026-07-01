@@ -169,9 +169,9 @@ describe('parseOptions', () => {
     expect(opts.maxConcurrency).toBe(20)
   })
 
-  it('defaults maxConcurrency to 10', () => {
+  it('defaults maxConcurrency to 3', () => {
     const opts = parseOptions([])
-    expect(opts.maxConcurrency).toBe(10)
+    expect(opts.maxConcurrency).toBe(3)
   })
 
   it('parses --content-type', () => {
