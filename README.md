@@ -42,6 +42,11 @@ npx obf discover https://www.example.com | npx obf validate --source - --domain 
 # save to file, then validate
 npx obf discover https://www.example.com > sitemaps.txt
 npx obf validate --source sitemaps.txt --domain http://localhost
+
+# full check: discover + validate + recursive in one command
+npx obf check canal26.com --local
+npx obf check canal26.com                    # against production
+npx obf check canal26.com --domain http://localhost
 ```
 
 El exit code es `0` si todas las validaciones pasan, `1` si alguna falla.

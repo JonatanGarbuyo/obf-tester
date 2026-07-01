@@ -43,6 +43,7 @@ function parseOptions(args) {
   }
 
   options.recursive = args.includes('--recursive');
+  options.local = args.includes('--local');
 
   return options;
 }
@@ -199,6 +200,7 @@ async function runSingle(args) {
     console.error('Usage: npx obf validate <url> [options]');
     console.error('       npx obf validate --source <file> [--domain <url>] [--recursive]');
     console.error('       npx obf discover <url>');
+    console.error('       npx obf check <url> [--local]');
     console.error('');
     console.error('Options:');
     console.error('  --content-type <type>    Expected Content-Type (e.g. application/xml)');
@@ -206,6 +208,7 @@ async function runSingle(args) {
     console.error('  --source <file>          File with routes (one per line), "-" for stdin');
     console.error('  --domain <url>           Base domain for relative routes in source');
     console.error('  --recursive              Follow sitemap-index children');
+    console.error('  --local                  Shorthand for --domain http://localhost');
     process.exit(1);
   }
 
@@ -213,6 +216,65 @@ async function runSingle(args) {
   const result = await validate(normalizeUrl(url), options);
   printSingle(result);
   process.exit(result.passed ? 0 : 1);
+}
+
+async function runCheck(args) {
+  const url = args[0];
+  if (!url || url.startsWith('--')) {
+    console.error('Usage: npx obf check <url> [--domain <url>] [--local]');
+    process.exit(1);
+  }
+
+  const options = parseOptions(args);
+  const domain = options.local && !options.domain ? 'http://localhost' : options.domain;
+  const normalizedUrl = normalizeUrl(url);
+
+  const { sitemaps, source, error } = await discover(normalizedUrl);
+  if (sitemaps.length === 0) {
+    console.error(`No sitemaps found in ${source}${error ? ` (${error})` : ''}`);
+    process.exit(1);
+  }
+
+  const resolved = sitemaps.map(sm => resolveUrl(sm, domain));
+
+  console.log(`Check: ${normalizedUrl}\n`);
+
+  if (!domain && resolved.some(u => isProdUrl(u))) {
+    console.warn('⚠  Warning: validating against production URLs (use --domain or --local to override)\n');
+  }
+
+  const allResults = [];
+  let passed = 0;
+  let total = 0;
+
+  for (const rUrl of resolved) {
+    const result = await validate(rUrl, {
+      type: options.type,
+      expectedContentType: options.expectedContentType,
+    });
+    allResults.push(result);
+    total++;
+    if (result.passed) passed++;
+    printBatchRow(result);
+
+    if (result.body && result.contentType?.includes('xml')) {
+      const childUrls = extractChildUrls(result.body);
+      for (const childUrl of childUrls) {
+        const childResolved = resolveUrl(childUrl, domain);
+        const child = await validate(childResolved, {
+          type: 'sitemap',
+          expectedContentType: options.expectedContentType,
+        });
+        allResults.push(child);
+        total++;
+        if (child.passed) passed++;
+        printBatchRow(child, 2);
+      }
+    }
+  }
+
+  printBatchSummary(passed, total);
+  process.exit(allResults.every(r => r.passed) ? 0 : 1);
 }
 
 async function runDiscover(args) {
@@ -243,10 +305,16 @@ async function main() {
     return;
   }
 
+  if (command === 'check') {
+    await runCheck(args.slice(1));
+    return;
+  }
+
   if (command !== 'validate') {
     console.error('Usage: npx obf validate <url> [options]');
     console.error('       npx obf validate --source <file> [--domain <url>] [--recursive]');
     console.error('       npx obf discover <url>');
+    console.error('       npx obf check <url> [--local]');
     process.exit(1);
   }
 

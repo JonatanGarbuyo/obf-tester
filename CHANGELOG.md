@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.0] - 2026-07-01
+
+### Added
+
+- **`check` subcommand**: `npx obf check <url>` — discover + validate + recursive in one command
+- **`--local` flag**: shorthand for `--domain http://localhost`
+- **Production warning**: warns when validating against production URLs without `--domain` or `--local`
+
 ## [0.5.0] - 2026-07-01
 
 ### Added
