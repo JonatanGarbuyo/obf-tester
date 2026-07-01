@@ -45,6 +45,9 @@ function parseOptions(args) {
   options.recursive = args.includes('--recursive');
   options.local = args.includes('--local');
 
+  const maxIndex = args.indexOf('--max');
+  options.max = maxIndex !== -1 && args[maxIndex + 1] !== undefined ? Number(args[maxIndex + 1]) : 3;
+
   return options;
 }
 
@@ -175,8 +178,9 @@ async function runBatch(args) {
 
     if (recursive && result.body && result.contentType && result.contentType.includes('xml')) {
       const childUrls = extractChildUrls(result.body);
-      for (const childUrl of childUrls) {
-        const childResolved = resolveUrl(childUrl, domain);
+      const max = options.max === 0 ? childUrls.length : options.max;
+      for (let i = 0; i < Math.min(childUrls.length, max); i++) {
+        const childResolved = resolveUrl(childUrls[i], domain);
         const child = await validate(childResolved, {
           type: 'sitemap',
           expectedContentType: options.expectedContentType,
@@ -185,6 +189,9 @@ async function runBatch(args) {
         total++;
         if (child.passed) passed++;
         printBatchRow(child, 2);
+      }
+      if (childUrls.length > max) {
+        console.log(`  ... and ${childUrls.length - max} more (use --max 0 to see all)`);
       }
     }
   }
@@ -209,6 +216,7 @@ async function runSingle(args) {
     console.error('  --domain <url>           Base domain for relative routes in source');
     console.error('  --recursive              Follow sitemap-index children');
     console.error('  --local                  Shorthand for --domain http://localhost');
+    console.error('  --max <number>           Max recursive children (default 3, 0 = all)');
     process.exit(1);
   }
 
@@ -221,7 +229,7 @@ async function runSingle(args) {
 async function runCheck(args) {
   const url = args[0];
   if (!url || url.startsWith('--')) {
-    console.error('Usage: npx obf check <url> [--domain <url>] [--local]');
+    console.error('Usage: npx obf check <url> [--domain <url>] [--local] [--max N]');
     process.exit(1);
   }
 
@@ -259,8 +267,9 @@ async function runCheck(args) {
 
     if (result.body && result.contentType?.includes('xml')) {
       const childUrls = extractChildUrls(result.body);
-      for (const childUrl of childUrls) {
-        const childResolved = resolveUrl(childUrl, domain);
+      const max = options.max === 0 ? childUrls.length : options.max;
+      for (let i = 0; i < Math.min(childUrls.length, max); i++) {
+        const childResolved = resolveUrl(childUrls[i], domain);
         const child = await validate(childResolved, {
           type: 'sitemap',
           expectedContentType: options.expectedContentType,
@@ -269,6 +278,9 @@ async function runCheck(args) {
         total++;
         if (child.passed) passed++;
         printBatchRow(child, 2);
+      }
+      if (childUrls.length > max) {
+        console.log(`  ... and ${childUrls.length - max} more (use --max 0 to see all)`);
       }
     }
   }
@@ -314,7 +326,7 @@ async function main() {
     console.error('Usage: npx obf validate <url> [options]');
     console.error('       npx obf validate --source <file> [--domain <url>] [--recursive]');
     console.error('       npx obf discover <url>');
-    console.error('       npx obf check <url> [--local]');
+    console.error('       npx obf check <url> [--local] [--max N]');
     process.exit(1);
   }
 

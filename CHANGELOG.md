@@ -6,6 +6,7 @@
 
 - **`check` subcommand**: `npx obf check <url>` — discover + validate + recursive in one command
 - **`--local` flag**: shorthand for `--domain http://localhost`
+- **`--max <N>` flag**: limit recursive children (default 3, 0 = all)
 - **Production warning**: warns when validating against production URLs without `--domain` or `--local`
 
 ## [0.5.0] - 2026-07-01

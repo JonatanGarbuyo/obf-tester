@@ -47,6 +47,7 @@ npx obf validate --source sitemaps.txt --domain http://localhost
 npx obf check canal26.com --local
 npx obf check canal26.com                    # against production
 npx obf check canal26.com --domain http://localhost
+npx obf check canal26.com --local --max 1    # quick: only 1 child per index
 ```
 
 El exit code es `0` si todas las validaciones pasan, `1` si alguna falla.
@@ -74,6 +75,8 @@ https://url-absoluta.com/feed.xml
 | `--source <file>` | File with routes (one per line), `-` for stdin |
 | `--domain <url>` | Base domain for relative routes in source |
 | `--recursive` | Follow `<sitemapindex>` children and validate each one |
+| `--max <number>` | Max recursive children (default 3, 0 = all) |
+| `--local` | Shorthand for `--domain http://localhost` |
 
 ## Validaciones
 
