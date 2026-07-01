@@ -177,7 +177,8 @@ async function validateAndRecurse(url, options, domain, delayMs) {
   const all = [result];
   printBatchRow(result);
 
-  if (result.body && result.contentType?.includes('xml')) {
+  const isXml = result.contentType?.includes('xml') || result.body?.includes('<sitemapindex');
+  if (result.body && isXml) {
     const childUrls = extractChildUrls(result.body);
     if (childUrls.length > 0) {
       const sliced = options.maxPagination > 0 ? childUrls.slice(0, options.maxPagination) : childUrls;
@@ -326,7 +327,8 @@ async function runCheck(args) {
     allResults.push(result);
     printBatchRow(result);
 
-    if (result.body && result.contentType?.includes('xml')) {
+  const isXmlBody = result.contentType?.includes('xml') || result.body?.includes('<sitemapindex');
+  if (result.body && isXmlBody) {
       const childUrls = extractChildUrls(result.body);
       if (childUrls.length === 0) continue;
 

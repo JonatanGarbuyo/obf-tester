@@ -302,6 +302,19 @@ describe('validateAndRecurse', () => {
     expect(mockFetchUrl).toHaveBeenCalledTimes(4)
   })
 
+  it('recurses on body content even when Content-Type is not XML', async () => {
+    mockFetchUrl
+      .mockResolvedValueOnce(mockResponse({
+        url: 'http://test.com/index',
+        body: sitemapIndexBody,
+        contentType: 'text/html',
+      }))
+      .mockResolvedValue(mockResponse({ url: 'http://test.com/child' }))
+
+    const results = await validateAndRecurse('http://test.com/index', {}, undefined, 0)
+    expect(results).toHaveLength(4) // 1 parent + 3 children — detected by <sitemapindex in body
+  })
+
   it('respects maxPagination', async () => {
     mockFetchUrl
       .mockResolvedValueOnce(mockResponse({
