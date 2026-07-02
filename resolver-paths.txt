@@ -1,0 +1,37 @@
+# Arc XP resolver routes
+# Use: npx obf validate --source resolver-paths.txt --domain http://localhost
+#
+# Feed variants
+/arc/outboundfeeds/rss/
+/arc/outboundfeeds/rss/category/futbol/
+/arc/outboundfeeds/rss/author/elnueve/
+/arc/outboundfeeds/msn/
+/arc/outboundfeeds/msn/category/futbol/
+/arc/outboundfeeds/mrss/
+/arc/outboundfeeds/mrss/category/futbol/
+/arc/outboundfeeds/google-news-feed/
+/arc/outboundfeeds/google-news-feed/category/futbol/
+/arc/outboundfeeds/fb-ia/
+/arc/outboundfeeds/fb-ia/category/futbol/
+/arc/outboundfeeds/flipboard/
+/arc/outboundfeeds/flipboard/category/futbol/
+/arc/outboundfeeds/alexa/
+/arc/outboundfeeds/ans/
+/arc/outboundfeeds/ans/category/futbol/
+/arc/outboundfeeds/article/
+
+# Sitemap variants (not covered by sitemap-index children)
+/arc/outboundfeeds/sitemap-section/
+/arc/outboundfeeds/sitemap-news/
+/arc/outboundfeeds/sitemap-news/category/futbol/
+/arc/outboundfeeds/sitemap-news2/
+/arc/outboundfeeds/sitemap-news3/
+/arc/outboundfeeds/sitemap2/
+/arc/outboundfeeds/sitemap3/
+/arc/outboundfeeds/sitemap-video/
+/arc/outboundfeeds/sitemap-video/category/futbol/
+
+# Sitemap-index variants (already tested via --recursive, included for manual use)
+/arc/outboundfeeds/sitemap-index/?outputType=xml
+/arc/outboundfeeds/sitemap-news-index/?outputType=xml
+/arc/outboundfeeds/sitemap-section-index/?outputType=xml
