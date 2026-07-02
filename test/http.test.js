@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchUrl, FetchError, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent } from '../src/http.js'
+import { fetchUrl, FetchError, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent, appendDeploy } from '../src/http.js'
 
 beforeEach(() => {
   vi.restoreAllMocks()
@@ -238,6 +238,26 @@ describe('isProdUrl', () => {
 
   it('returns true for invalid URL', () => {
     expect(isProdUrl('not-a-url')).toBe(true)
+  })
+})
+
+// --------------- appendDeploy ---------------
+
+describe('appendDeploy', () => {
+  it('returns URL unchanged when no deploy', () => {
+    expect(appendDeploy('http://test.com/feed', undefined)).toBe('http://test.com/feed')
+  })
+
+  it('appends ?d=N when URL has no query string', () => {
+    expect(appendDeploy('http://test.com/feed', 123)).toBe('http://test.com/feed?d=123')
+  })
+
+  it('appends &d=N when URL already has query string', () => {
+    expect(appendDeploy('http://test.com/feed?from=0', 456)).toBe('http://test.com/feed?from=0&d=456')
+  })
+
+  it('handles deploy=0', () => {
+    expect(appendDeploy('http://test.com/feed', 0)).toBe('http://test.com/feed?d=0')
   })
 })
 

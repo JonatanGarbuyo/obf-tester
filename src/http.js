@@ -51,6 +51,12 @@ export function isProdUrl(url) {
   }
 }
 
+export function appendDeploy(url, deploy) {
+  if (deploy === null || deploy === undefined) return url
+  const sep = url.includes('?') ? '&' : '?'
+  return `${url}${sep}d=${deploy}`
+}
+
 export async function fetchUrl(url, options = {}) {
   const { timeout = DEFAULT_TIMEOUT, headers = {} } = options;
 

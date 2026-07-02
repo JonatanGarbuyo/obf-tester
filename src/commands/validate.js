@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs'
 import { validate } from '../validate.js'
-import { sleep, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent } from '../http.js'
+import { sleep, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent, appendDeploy } from '../http.js'
 import { extractChildUrls } from '../parsers/sitemap.js'
 import { readSource } from '../source.js'
 import * as logger from '../logger.js'
@@ -31,6 +31,7 @@ export async function validateAndRecurse(url, options, domain, delayMs) {
       const sliced = maxPagination > 0 ? childUrls.slice(0, maxPagination) : childUrls
       logger.childCount(sliced.length)
       const childResolved = sliced.map(cu => resolveUrl(cu, domain))
+        .map(u => appendDeploy(u, options.deploy))
       const childResults = await mapConcurrent(childResolved, maxConcurrency, async (childUrl) => {
         await sleep(delayMs)
         const childResult = await validate(childUrl, { type: 'sitemap' })
@@ -50,7 +51,7 @@ export async function runValidate(argv) {
 
   if (argv.recursive) {
     const delayMs = argv.delay ?? DEFAULT_DELAY
-    const normalizedUrl = normalizeUrl(url)
+    const normalizedUrl = appendDeploy(normalizeUrl(url), argv.deploy)
 
     if (!domain && isProdUrl(normalizedUrl)) {
       logger.warn('⚠  Warning: validating against production URLs (use --domain to override)\n')
@@ -64,7 +65,7 @@ export async function runValidate(argv) {
     logger.exit(allResults.every(r => r.passed) ? 0 : 1)
   }
 
-  const result = await validate(normalizeUrl(url), validateOpts(argv))
+  const result = await validate(appendDeploy(normalizeUrl(url), argv.deploy), validateOpts(argv))
   logger.singleResult(result)
   logger.exit(result.passed ? 0 : 1)
 }
@@ -82,6 +83,7 @@ export async function runBatch(argv) {
   }
 
   const urls = lines.map(line => resolveUrl(line, domain))
+    .map(u => appendDeploy(u, argv.deploy))
 
   if (!domain && urls.some(u => isProdUrl(u))) {
     logger.warn('⚠  Warning: validating against production URLs (use --domain to override)\n')

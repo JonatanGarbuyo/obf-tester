@@ -21,6 +21,7 @@ export async function run(args) {
         .option('max-pagination', { type: 'number', default: 0, describe: 'Max children per sitemap-index' })
         .option('content-type', { type: 'string', describe: 'Expected Content-Type' })
         .option('output', { type: 'string', describe: 'Write failure report to file' })
+        .option('deploy', { type: 'number', describe: 'Arc XP deploy number (?d=N)' })
     }, async (argv) => {
       if (argv.source) {
         await runBatch(argv)
@@ -42,6 +43,7 @@ export async function run(args) {
         .option('max-concurrency', { type: 'number', default: 1, describe: 'Concurrent requests' })
         .option('delay', { type: 'number', describe: 'Delay between requests (default 300)' })
         .option('max-pagination', { type: 'number', default: 0, describe: 'Max children per sitemap-index' })
+        .option('deploy', { type: 'number', describe: 'Arc XP deploy number (?d=N)' })
     }, async (argv) => {
       await runCheck(argv)
     })

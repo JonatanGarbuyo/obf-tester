@@ -1,6 +1,6 @@
 import { validate } from '../validate.js'
 import { discover } from '../parsers/robots.js'
-import { sleep, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent } from '../http.js'
+import { sleep, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent, appendDeploy } from '../http.js'
 import { extractChildUrls } from '../parsers/sitemap.js'
 import * as logger from '../logger.js'
 
@@ -32,6 +32,7 @@ export async function runCheck(argv) {
   }
 
   const resolved = sitemaps.map(sm => resolveUrl(sm, domain))
+    .map(u => appendDeploy(u, argv.deploy))
   const effectiveDelay = delayMs ?? (crawlDelay ?? DEFAULT_DELAY)
 
   logger.checkInfo(`Check: ${normalizedUrl}\n`)
@@ -60,6 +61,7 @@ export async function runCheck(argv) {
       const sliced = maxPagination > 0 ? childUrls.slice(0, maxPagination) : childUrls
       logger.childCount(sliced.length)
       const childResolved = sliced.map(cu => resolveUrl(cu, domain))
+        .map(u => appendDeploy(u, argv.deploy))
       const childResults = await mapConcurrent(childResolved, maxConcurrency, async (childUrl) => {
         await sleep(effectiveDelay)
         return validate(childUrl, { type: 'sitemap' })
