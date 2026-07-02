@@ -93,10 +93,6 @@
 /arc/outboundfeeds/sitemap-index/?outputType=xml
 /arc/outboundfeeds/sitemap-news-index/?outputType=xml
 /arc/outboundfeeds/sitemap-section-index/?outputType=xml
-/arc/outboundfeeds/sitemap-news2-index/?outputType=xml
-/arc/outboundfeeds/sitemap-news3-index/?outputType=xml
-/arc/outboundfeeds/sitemap2-index/?outputType=xml
-/arc/outboundfeeds/sitemap3-index/?outputType=xml
 
 # --- "With day" variants (sitemaps por fecha) ---
 /arc/outboundfeeds/sitemap/latest/
