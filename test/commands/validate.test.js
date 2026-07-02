@@ -110,6 +110,56 @@ describe('validateAndRecurse', () => {
     expect(mockFetchUrl).toHaveBeenCalledTimes(3)
     expect(mockLogger.childCount).toHaveBeenCalledWith(2)
   })
+
+  it('resolves child URLs with domain', async () => {
+    mockFetchUrl
+      .mockResolvedValueOnce(mockResponse({
+        url: 'http://test.com/index',
+        body: sitemapIndexBody,
+        contentType: 'application/xml',
+      }))
+      .mockResolvedValue(mockResponse({ url: 'http://localhost/child' }))
+
+    const results = await validateAndRecurse(
+      'http://test.com/index',
+      { maxPagination: 1 },
+      'http://localhost',
+      0
+    )
+
+    // children are resolved against domain
+    expect(mockFetchUrl).toHaveBeenNthCalledWith(2, 'http://localhost/sitemap-1.xml', expect.any(Object))
+    expect(results).toHaveLength(2)
+  })
+
+  it('recurses into children even when parent validation fails', async () => {
+    mockFetchUrl
+      .mockResolvedValueOnce(mockResponse({
+        url: 'http://test.com/index',
+        status: 500,
+        body: sitemapIndexBody,
+        contentType: 'application/xml',
+      }))
+      .mockResolvedValue(mockResponse({ url: 'http://test.com/child' }))
+
+    const results = await validateAndRecurse('http://test.com/index', { maxPagination: 1 }, undefined, 0)
+
+    expect(results).toHaveLength(2)
+    expect(results[0].passed).toBe(false)
+    expect(mockLogger.childCount).toHaveBeenCalledWith(1)
+  })
+
+  it('does not recurse when parent body is empty', async () => {
+    mockFetchUrl.mockResolvedValue(mockResponse({
+      url: 'http://test.com/index',
+      body: '',
+      contentType: 'application/xml',
+    }))
+
+    const results = await validateAndRecurse('http://test.com/index', {}, undefined, 0)
+    expect(results).toHaveLength(1)
+    expect(mockLogger.childCount).not.toHaveBeenCalled()
+  })
 })
 
 // --------------- runValidate ---------------

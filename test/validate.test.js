@@ -266,3 +266,23 @@ describe('type option triggers XML validation', () => {
     expect(rssChannel.passed).toBe(true)
   })
 })
+
+// --------------- body null / undefined edge cases ---------------
+
+describe('body edge cases', () => {
+  it('handles null body without crashing', async () => {
+    mockFetchUrl.mockResolvedValue(mockResponse({ body: null }))
+    const result = await validate('http://test.com')
+    expect(result.passed).toBe(false)
+    const bodyCheck = result.checks.find(c => c.check === 'body-not-empty')
+    expect(bodyCheck.passed).toBe(false)
+  })
+
+  it('handles undefined body without crashing', async () => {
+    mockFetchUrl.mockResolvedValue(mockResponse({ body: undefined }))
+    const result = await validate('http://test.com')
+    expect(result.passed).toBe(false)
+    const bodyCheck = result.checks.find(c => c.check === 'body-not-empty')
+    expect(bodyCheck.passed).toBe(false)
+  })
+})
