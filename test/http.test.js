@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchUrl, FetchError } from '../src/http.js'
+import { fetchUrl, FetchError, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent } from '../src/http.js'
 
 beforeEach(() => {
   vi.restoreAllMocks()
@@ -142,5 +142,110 @@ describe('FetchError', () => {
     expect(err.name).toBe('FetchError')
     expect(err.status).toBe(500)
     expect(err.url).toBe('http://x.com')
+  })
+})
+
+// --------------- normalizeUrl ---------------
+
+describe('normalizeUrl', () => {
+  it('adds https for bare domain', () => {
+    expect(normalizeUrl('canal26.com')).toBe('https://canal26.com')
+  })
+
+  it('adds http for localhost', () => {
+    expect(normalizeUrl('localhost:3000')).toBe('http://localhost:3000')
+  })
+
+  it('adds http for 127.0.0.1', () => {
+    expect(normalizeUrl('127.0.0.1')).toBe('http://127.0.0.1')
+  })
+
+  it('returns https:// as-is', () => {
+    expect(normalizeUrl('https://example.com')).toBe('https://example.com')
+  })
+
+  it('returns http:// as-is', () => {
+    expect(normalizeUrl('http://example.com')).toBe('http://example.com')
+  })
+})
+
+// --------------- resolveUrl ---------------
+
+describe('resolveUrl', () => {
+  it('resolves relative path with domain', () => {
+    expect(resolveUrl('/path/to/feed', 'http://localhost')).toBe('http://localhost/path/to/feed')
+  })
+
+  it('rewrites absolute URL when domain is given', () => {
+    expect(resolveUrl('https://prod.com/feed', 'http://localhost')).toBe('http://localhost/feed')
+  })
+
+  it('returns absolute URL as-is when no domain', () => {
+    expect(resolveUrl('https://prod.com/feed', undefined)).toBe('https://prod.com/feed')
+  })
+
+  it('throws for relative path without domain', () => {
+    expect(() => resolveUrl('/path', undefined)).toThrow(/--domain/)
+  })
+
+  it('throws for invalid path', () => {
+    expect(() => resolveUrl('invalid', 'http://localhost')).toThrow(/invalid/i)
+  })
+
+  it('preserves query string when rewriting', () => {
+    expect(resolveUrl('https://prod.com/feed?from=0', 'http://localhost')).toBe('http://localhost/feed?from=0')
+  })
+})
+
+// --------------- isProdUrl ---------------
+
+describe('isProdUrl', () => {
+  it('returns false for localhost', () => {
+    expect(isProdUrl('http://localhost/sitemap')).toBe(false)
+  })
+
+  it('returns false for 127.0.0.1', () => {
+    expect(isProdUrl('http://127.0.0.1/sitemap')).toBe(false)
+  })
+
+  it('returns false for 0.0.0.0', () => {
+    expect(isProdUrl('http://0.0.0.0/sitemap')).toBe(false)
+  })
+
+  it('returns true for real domain', () => {
+    expect(isProdUrl('https://canal26.com/sitemap')).toBe(true)
+  })
+
+  it('returns true for invalid URL', () => {
+    expect(isProdUrl('not-a-url')).toBe(true)
+  })
+})
+
+// --------------- mapConcurrent ---------------
+
+describe('mapConcurrent', () => {
+  it('maps all items and maintains order', async () => {
+    const result = await mapConcurrent([1, 2, 3], 2, (x) => Promise.resolve(x * 2))
+    expect(result).toEqual([2, 4, 6])
+  })
+
+  it('handles empty array', async () => {
+    const result = await mapConcurrent([], 5, (x) => Promise.resolve(x))
+    expect(result).toEqual([])
+  })
+
+  it('handles concurrency larger than array length', async () => {
+    const result = await mapConcurrent([1, 2], 100, (x) => Promise.resolve(x))
+    expect(result).toEqual([1, 2])
+  })
+
+  it('preserves order with concurrent execution', async () => {
+    const order = []
+    await mapConcurrent([3, 1, 2], 2, async (x) => {
+      await new Promise(r => setTimeout(r, x * 10))
+      order.push(x)
+      return x
+    })
+    expect(order.sort((a, b) => a - b)).toEqual([1, 2, 3])
   })
 })

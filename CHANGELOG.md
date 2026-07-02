@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0] - 2026-07-01
+
+### Changed
+
+- **XMLValidator migration**: migrated from deprecated `XMLValidator` in `fast-xml-parser` to `SyntaxValidator` in `fast-xml-validator`
+- **Test file structure**: refactored to mirror source layout. `test/fetcher.test.js` → `test/http.test.js`, `test/discover.test.js` → `test/robots.test.js`. Created `test/sitemap.test.js`, `test/source.test.js`, `test/commands/validate.test.js`. Removed the grab-bag `test/index.test.js`
+
 ## [0.12.0] - 2026-07-01
 
 ### Added

@@ -16,10 +16,15 @@
 
 ## Architecture
 
-- `src/fetcher.js` — HTTP transport layer
+- `src/http.js` — HTTP transport layer (fetchUrl, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent)
 - `src/validate.js` — core validation orchestrator
 - `src/validators/` — type-specific validators (xml.js, etc.)
-- `src/index.js` — CLI entry point
+- `src/parsers/` — text-to-data parsers (robots.js, sitemap.js)
+- `src/commands/` — CLI command implementations (validate.js, discover.js, check.js)
+- `src/cli.js` — yargs command definitions
+- `src/logger.js` — user-facing output with [PASS]/[FAIL] tags
+- `src/source.js` — file/stdin source reader
+- `src/index.js` — CLI entry point (isMain guard)
 
 ## Validation philosophy
 
@@ -31,10 +36,10 @@
 ## Testing
 
 - Use **vitest** — `npm test` to run, `npm run test:watch` for watch mode
-- Mock `globalThis.fetch` for `fetcher.test.js`
-- Mock `fetchUrl` export with `vi.hoisted()` + `vi.mock()` factory for `validate.test.js` and `discover.test.js`
+- Mock `globalThis.fetch` for `http.test.js`
+- Mock `fetchUrl` export with `vi.hoisted()` + `vi.mock()` factory for `validate.test.js`, `robots.test.js`, and `commands/validate.test.js`
 - Mock `node:fs` with `vi.mock()` (not `vi.spyOn`, which doesn't work on ESM module namespace)
-- Helper functions exported from `src/index.js` specifically for testing
+- Test files mirror source structure: `test/http.test.js`, `test/validate.test.js`, `test/xml.test.js`, `test/robots.test.js`, `test/sitemap.test.js`, `test/source.test.js`, `test/commands/validate.test.js`
 - Guard CLI entry with `isMain` check to prevent `main()` execution on import
 - Coverage: `npx vitest run --coverage` (requires `@vitest/coverage-v8`)
 
