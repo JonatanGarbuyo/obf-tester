@@ -3,5 +3,5 @@ node_modules/
 *.log
 snapshots/
 feeds.txt
-feeds/feeds.txt
-feeds/.obf-failed.txt
+feeds/*.txt
+!feeds/*.example.txt
