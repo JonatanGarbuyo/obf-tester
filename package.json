@@ -27,6 +27,7 @@
     "yargs": "^18.0.0"
   },
   "devDependencies": {
+    "@dietrichgebert/ponytail": "^4.8.4",
     "vitest": "^4.1.9"
   }
 }
