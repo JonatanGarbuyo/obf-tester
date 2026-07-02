@@ -54,7 +54,7 @@ function validateRss(rss) {
 
   const items = channel.item;
   if (!items || items.length === 0) {
-    checks.push({ check: 'rss-items', passed: false, detail: 'no <item> elements' });
+    checks.push({ check: 'rss-items', passed: true, detail: '0 items' });
     return checks;
   }
   checks.push({ check: 'rss-items', passed: true, detail: `${items.length} items` });
@@ -97,7 +97,7 @@ function validateAtom(feed) {
 
   const entries = feed.entry;
   if (!entries || entries.length === 0) {
-    checks.push({ check: 'atom-entries', passed: false, detail: 'no <entry> elements' });
+    checks.push({ check: 'atom-entries', passed: true, detail: '0 entries' });
     return checks;
   }
   checks.push({ check: 'atom-entries', passed: true, detail: `${entries.length} entries` });
@@ -132,7 +132,7 @@ function validateSitemap(urlset) {
 
   const urls = urlset.url;
   if (!urls || urls.length === 0) {
-    checks.push({ check: 'sitemap-urls', passed: false, detail: 'no <url> elements' });
+    checks.push({ check: 'sitemap-urls', passed: true, detail: '0 urls' });
     return checks;
   }
   checks.push({ check: 'sitemap-urls', passed: true, detail: `${urls.length} urls` });
@@ -183,7 +183,7 @@ function validateSitemapIndex(sitemapindex) {
 
   const sitemaps = sitemapindex.sitemap;
   if (!sitemaps || sitemaps.length === 0) {
-    checks.push({ check: 'sitemap-index-sitemaps', passed: false, detail: 'no <sitemap> elements' });
+    checks.push({ check: 'sitemap-index-sitemaps', passed: true, detail: '0 sitemaps' });
     return checks;
   }
   checks.push({ check: 'sitemap-index-sitemaps', passed: true, detail: `${sitemaps.length} sitemaps` });

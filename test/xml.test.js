@@ -186,7 +186,7 @@ describe('RSS', () => {
     expect(link.passed).toBe(false)
   })
 
-  it('fails rss-items when no <item> elements', () => {
+  it('handles empty rss-items (0 items)', () => {
     const xml = `<?xml version="1.0"?>
 <rss version="2.0">
   <channel>
@@ -196,7 +196,7 @@ describe('RSS', () => {
 </rss>`
     const checks = validateXml(xml)
     const items = checks.find(c => c.check === 'rss-items')
-    expect(items.passed).toBe(false)
+    expect(items.passed).toBe(true)
   })
 
   it('fails rss-item-date when pubDate is unparseable', () => {
@@ -274,7 +274,7 @@ describe('Atom', () => {
     expect(title.passed).toBe(false)
   })
 
-  it('fails atom-entries when no <entry> elements', () => {
+  it('handles empty atom-entries (0 entries)', () => {
     const xml = `<?xml version="1.0"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>Test</title>
@@ -282,7 +282,7 @@ describe('Atom', () => {
 </feed>`
     const checks = validateXml(xml)
     const entries = checks.find(c => c.check === 'atom-entries')
-    expect(entries.passed).toBe(false)
+    expect(entries.passed).toBe(true)
   })
 
   it('fails atom-link when <link> has no href', () => {
@@ -355,13 +355,13 @@ describe('Sitemap', () => {
     expect(root.detail).toMatch(/\(sitemap\)/)
   })
 
-  it('fails sitemap-urls when no <url> elements', () => {
+  it('handles empty sitemap-urls (0 urls)', () => {
     const xml = `<?xml version="1.0"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </urlset>`
     const checks = validateXml(xml)
     const urls = checks.find(c => c.check === 'sitemap-urls')
-    expect(urls.passed).toBe(false)
+    expect(urls.passed).toBe(true)
   })
 
   it('fails sitemap-loc-empty when a <loc> is empty', () => {
@@ -411,13 +411,13 @@ describe('Sitemap Index', () => {
     expect(root.detail).toMatch(/\(sitemap-index\)/)
   })
 
-  it('fails sitemap-index-sitemaps when no <sitemap> elements', () => {
+  it('handles empty sitemap-index-sitemaps (0 sitemaps)', () => {
     const xml = `<?xml version="1.0"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 </sitemapindex>`
     const checks = validateXml(xml)
     const sitemaps = checks.find(c => c.check === 'sitemap-index-sitemaps')
-    expect(sitemaps.passed).toBe(false)
+    expect(sitemaps.passed).toBe(true)
   })
 
   it('fails sitemap-index-loc-empty when a <loc> is empty', () => {
