@@ -26,4 +26,33 @@ describe('readSource', () => {
     const lines = await readSource('./test.txt')
     expect(lines).toEqual(['/path/1', '/path/2'])
   })
+
+  it('throws when file does not exist', async () => {
+    mockReadFileSync.mockImplementation(() => {
+      throw new Error('ENOENT: no such file or directory')
+    })
+    await expect(readSource('./nonexistent.txt')).rejects.toThrow(/ENOENT/)
+  })
+
+  it('reads from stdin when source is "-"', async () => {
+    const originalIsTTY = process.stdin.isTTY
+    const originalOn = process.stdin.on
+
+    const chunks = []
+    process.stdin.isTTY = false
+    process.stdin.on = (event, cb) => {
+      if (event === 'data') chunks.push(cb)
+      if (event === 'end') {
+        chunks.forEach(cb => cb(Buffer.from('/stdin/path1\n# comment\n/stdin/path2\n')))
+        cb()
+      }
+      return process.stdin
+    }
+
+    const lines = await readSource('-')
+    expect(lines).toEqual(['/stdin/path1', '/stdin/path2'])
+
+    process.stdin.isTTY = originalIsTTY
+    process.stdin.on = originalOn
+  })
 })

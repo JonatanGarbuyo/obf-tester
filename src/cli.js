@@ -26,8 +26,8 @@ export async function run(args) {
       } else if (argv.url) {
         await runValidate(argv)
       } else {
-        console.error('Error: <url> or --source is required\n')
-        yargs.showHelp()
+        console.error('Error: <url> or --source is required')
+        console.error('Usage: obf validate [url] [options]')
         process.exit(1)
       }
     })

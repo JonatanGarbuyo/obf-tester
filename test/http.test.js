@@ -134,6 +134,26 @@ describe('fetchUrl error handling', () => {
     await expect(fetchUrl('http://test.com')).rejects.toThrow(FetchError)
     await expect(fetchUrl('http://test.com')).rejects.toThrow(/ENOTFOUND/)
   })
+
+  it('uses custom timeout option with AbortController', async () => {
+    vi.useFakeTimers()
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation((url, opts) => {
+      return new Promise((_, reject) => {
+        opts.signal.addEventListener('abort', () => {
+          reject(Object.assign(new Error('The operation was aborted'), { name: 'AbortError' }))
+        })
+      })
+    })
+
+    const promise = fetchUrl('http://test.com', { timeout: 50 })
+    promise.catch(() => {}) // suppress unhandled rejection detection
+    await vi.advanceTimersByTimeAsync(50)
+
+    await expect(promise).rejects.toThrow(FetchError)
+    await expect(promise).rejects.toThrow(/timeout/i)
+    vi.useRealTimers()
+  })
 })
 
 describe('FetchError', () => {
