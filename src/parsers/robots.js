@@ -1,4 +1,4 @@
-import { fetchUrl, FetchError } from '../http.js';
+import { fetchUrl } from '../http.js';
 
 export async function discover(url) {
   const base = new URL(url);
