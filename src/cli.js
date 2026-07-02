@@ -20,6 +20,7 @@ export async function run(args) {
         .option('delay', { type: 'number', describe: 'Delay between requests (default 300)' })
         .option('max-pagination', { type: 'number', default: 0, describe: 'Max children per sitemap-index' })
         .option('content-type', { type: 'string', describe: 'Expected Content-Type' })
+        .option('output', { type: 'string', describe: 'Write failure report to file' })
     }, async (argv) => {
       if (argv.source) {
         await runBatch(argv)

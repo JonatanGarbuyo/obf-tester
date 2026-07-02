@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs'
 import { validate } from '../validate.js'
 import { sleep, normalizeUrl, resolveUrl, isProdUrl, mapConcurrent } from '../http.js'
 import { extractChildUrls } from '../parsers/sitemap.js'
@@ -105,6 +106,23 @@ export async function runBatch(argv) {
   }
 
   const passed = allResults.filter(r => r.passed).length
+  const failed = allResults.filter(r => !r.passed)
   logger.summary(passed, allResults.length)
+
+  if (failed.length > 0) {
+    logger.failureReport(failed)
+
+    const failedPaths = failed.map(r => new URL(r.url).pathname)
+    writeFileSync('routes/.obf-failed.txt', failedPaths.join('\n') + '\n', 'utf-8')
+
+    if (argv.output) {
+      const report = failed.map((r, i) => {
+        const firstFail = r.checks.find(c => !c.passed)
+        return `${failedPaths[i]}${firstFail ? `  ${firstFail.check}: ${firstFail.detail}` : ''}`
+      }).join('\n') + '\n'
+      writeFileSync(argv.output, report, 'utf-8')
+    }
+  }
+
   logger.exit(allResults.every(r => r.passed) ? 0 : 1)
 }

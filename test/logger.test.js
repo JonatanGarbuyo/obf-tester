@@ -94,6 +94,42 @@ describe('childCount', () => {
   })
 })
 
+// --------------- failureReport ---------------
+
+describe('failureReport', () => {
+  it('logs nothing when no failures', () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    logger.failureReport([])
+    expect(spy).not.toHaveBeenCalled()
+  })
+
+  it('logs Failed: header and each failure', () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const failed = [
+      { url: 'http://test.com/feed1', passed: false, checks: [{ check: 'status', passed: false, detail: '404' }] },
+      { url: 'http://test.com/feed2', passed: false, checks: [{ check: 'body-not-empty', passed: false, detail: 'body is empty' }] },
+    ]
+    logger.failureReport(failed)
+    expect(spy).toHaveBeenCalledWith('\nFailed:')
+    expect(spy).toHaveBeenCalledWith('  [FAIL] http://test.com/feed1  status: 404')
+    expect(spy).toHaveBeenCalledWith('  [FAIL] http://test.com/feed2  body-not-empty: body is empty')
+  })
+
+  it('shows detail from first failing check', () => {
+    const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const failed = [{
+      url: 'http://test.com/feed',
+      passed: false,
+      checks: [
+        { check: 'status', passed: true, detail: '200' },
+        { check: 'forbidden-pattern', passed: false, detail: 'response contains "Fatal error"' },
+      ],
+    }]
+    logger.failureReport(failed)
+    expect(spy).toHaveBeenCalledWith('  [FAIL] http://test.com/feed  forbidden-pattern: response contains "Fatal error"')
+  })
+})
+
 // --------------- exit ---------------
 
 describe('exit', () => {

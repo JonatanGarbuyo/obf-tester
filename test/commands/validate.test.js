@@ -19,6 +19,7 @@ const mockLogger = vi.hoisted(() => ({
   sourceInfo: vi.fn(),
   checkInfo: vi.fn(),
   plain: vi.fn(),
+  failureReport: vi.fn(),
 }))
 
 vi.mock('../../src/logger.js', () => mockLogger)

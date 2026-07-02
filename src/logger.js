@@ -30,6 +30,15 @@ export function summary(passed, total) {
   console.log(`\nResult: ${passed}/${total} passed`)
 }
 
+export function failureReport(failed) {
+  if (failed.length === 0) return
+  console.log('\nFailed:')
+  for (const result of failed) {
+    const detail = extractDetail(result)
+    console.log(`  [FAIL] ${result.url}${detail ? `  ${detail}` : ''}`)
+  }
+}
+
 export function childCount(n) {
   console.log(`  (${n} children)`)
 }
