@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.17.0] - 2026-07-02
+
+### Changed
+
+- **`resolver-path.example.txt` refined**: deduplicated to 1 author/1 tag/1 tags_slug per feed type, added `?from=10&size=10` pagination for 10 feed types, added 6 `/latest/` "with day" variants, removed 4 invented indexes (sitemap-news2/3-index, sitemap2/3-index). Total 73 routes
+- **`article/` route fixed**: replaced base `article/` (404) with `article/?_id=K4KNUCWI5NG2XDNVY36VYNCSXY`
+
+### Removed
+
+- **Non-existent sitemap-index entries**: `sitemap-news2-index`, `sitemap-news3-index`, `sitemap2-index`, `sitemap3-index` removed from example file
+
+## [0.16.0] - 2026-07-01
+
+### Added
+
+- **`feeds/resolver-path.example.txt`**: 73 Arc XP route templates for all resolver types
+- **`feeds/` directory**: configuration files reorganized with `*.example.txt` tracked and other `.txt` files gitignored
+- **Global `.gitignore` pattern**: `feeds/*.txt` with `!feeds/*.example.txt`
+
+### Changed
+
+- **Feeds layout**: moved config files into `feeds/` directory, `resolver-path.example.txt` (tracked, 77 routes), `sitemap.example.txt` (tracked), `.obf-failed.txt` (gitignored)
+
+## [0.15.0] - 2026-07-01
+
+### Added
+
+- **`--deploy <N>` flag**: appends `?d=N` to all validated URLs for Arc XP deploy testing. Works in `validate` and `check` commands, including recursive children
+
+## [0.14.0] - 2026-07-01
+
+### Added
+
+- **`--output <file>` flag**: writes failure report to a separate file
+- **Failure report**: `--source` mode shows `Failed:` section after summary, writes failed paths to `feeds/.obf-failed.txt` for retry
+
+### Changed
+
+- **Empty feeds/items/urls/sitemaps pass instead of fail**: RSS/Atom with 0 items, sitemap with 0 urls, sitemap-index with 0 sitemaps now show `[PASS]` with count detail
+
 ## [0.13.0] - 2026-07-01
 
 ### Changed
