@@ -6,6 +6,7 @@
 
 - **XMLValidator migration**: migrated from deprecated `XMLValidator` in `fast-xml-parser` to `SyntaxValidator` in `fast-xml-validator`
 - **Test file structure**: refactored to mirror source layout. `test/fetcher.test.js` → `test/http.test.js`, `test/discover.test.js` → `test/robots.test.js`. Created `test/sitemap.test.js`, `test/source.test.js`, `test/commands/validate.test.js`. Removed the grab-bag `test/index.test.js`
+- **Test coverage for CLI commands**: added `test/logger.test.js` (18 tests), `test/commands/discover.test.js` (4 tests), `test/commands/check.test.js` (8 tests), and `runValidate`/`runBatch` tests to `test/commands/validate.test.js` (15 tests total). All 4 CLI commands + logger now have test coverage
 
 ## [0.12.0] - 2026-07-01
 
