@@ -32,12 +32,11 @@ export async function validateAndRecurse(url, options, domain, delayMs) {
       const childResolved = sliced.map(cu => resolveUrl(cu, domain))
       const childResults = await mapConcurrent(childResolved, maxConcurrency, async (childUrl) => {
         await sleep(delayMs)
-        return validate(childUrl, { type: 'sitemap' })
+        const childResult = await validate(childUrl, { type: 'sitemap' })
+        logger.rowResult(childResult, 2)
+        return childResult
       })
-      for (const child of childResults) {
-        all.push(child)
-        logger.rowResult(child, 2)
-      }
+      all.push(...childResults)
     }
   }
 
