@@ -113,7 +113,7 @@ export async function runBatch(argv) {
     logger.failureReport(failed)
 
     const failedPaths = failed.map(r => new URL(r.url).pathname)
-    writeFileSync('routes/.obf-failed.txt', failedPaths.join('\n') + '\n', 'utf-8')
+    writeFileSync('feeds/.obf-failed.txt', failedPaths.join('\n') + '\n', 'utf-8')
 
     if (argv.output) {
       const report = failed.map((r, i) => {
