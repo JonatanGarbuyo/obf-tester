@@ -1,111 +1,91 @@
 # Arc XP resolver routes
-# Use: npx obf validate --source resolver-paths.txt --domain http://localhost
-# Use with recursion: npx obf validate --source resolver-paths.txt --domain http://localhost --recursive --max-pagination 0
+# Use: npx obf validate --source feeds/resolver-path.txt --domain http://localhost
+# Use with recursion: npx obf validate --source feeds/resolver-path.txt --domain http://localhost --recursive --max-pagination 0
 #
 
 # --- rss ---
 /arc/outboundfeeds/rss/
 /arc/outboundfeeds/rss/category/futbol/
 /arc/outboundfeeds/rss/author/camila-tomaselli/
-/arc/outboundfeeds/rss/author/sebastian-coronati/
-/arc/outboundfeeds/rss/tags/mundial-2026/
 /arc/outboundfeeds/rss/tags/lionel-messi/
-/arc/outboundfeeds/rss/tags_slug/mundial-2026/
 /arc/outboundfeeds/rss/tags_slug/lionel-messi/
+/arc/outboundfeeds/rss/?from=10&size=10
 
 # --- msn ---
 /arc/outboundfeeds/msn/
 /arc/outboundfeeds/msn/category/futbol/
 /arc/outboundfeeds/msn/author/camila-tomaselli/
-/arc/outboundfeeds/msn/author/sebastian-coronati/
-/arc/outboundfeeds/msn/tags/mundial-2026/
 /arc/outboundfeeds/msn/tags/lionel-messi/
-/arc/outboundfeeds/msn/tags_slug/mundial-2026/
 /arc/outboundfeeds/msn/tags_slug/lionel-messi/
+/arc/outboundfeeds/msn/?from=10&size=10
 
 # --- mrss ---
 /arc/outboundfeeds/mrss/
 /arc/outboundfeeds/mrss/category/futbol/
 /arc/outboundfeeds/mrss/author/camila-tomaselli/
-/arc/outboundfeeds/mrss/author/sebastian-coronati/
-/arc/outboundfeeds/mrss/tags/mundial-2026/
 /arc/outboundfeeds/mrss/tags/lionel-messi/
-/arc/outboundfeeds/mrss/tags_slug/mundial-2026/
 /arc/outboundfeeds/mrss/tags_slug/lionel-messi/
+/arc/outboundfeeds/mrss/?from=10&size=10
 
 # --- google-news-feed ---
 /arc/outboundfeeds/google-news-feed/
 /arc/outboundfeeds/google-news-feed/category/futbol/
 /arc/outboundfeeds/google-news-feed/author/camila-tomaselli/
-/arc/outboundfeeds/google-news-feed/author/sebastian-coronati/
-/arc/outboundfeeds/google-news-feed/tags/mundial-2026/
 /arc/outboundfeeds/google-news-feed/tags/lionel-messi/
-/arc/outboundfeeds/google-news-feed/tags_slug/mundial-2026/
 /arc/outboundfeeds/google-news-feed/tags_slug/lionel-messi/
+/arc/outboundfeeds/google-news-feed/?from=10&size=10
 
 # --- fb-ia ---
 /arc/outboundfeeds/fb-ia/
 /arc/outboundfeeds/fb-ia/category/futbol/
 /arc/outboundfeeds/fb-ia/author/camila-tomaselli/
-/arc/outboundfeeds/fb-ia/author/sebastian-coronati/
-/arc/outboundfeeds/fb-ia/tags/mundial-2026/
 /arc/outboundfeeds/fb-ia/tags/lionel-messi/
-/arc/outboundfeeds/fb-ia/tags_slug/mundial-2026/
 /arc/outboundfeeds/fb-ia/tags_slug/lionel-messi/
+/arc/outboundfeeds/fb-ia/?from=10&size=10
 
 # --- flipboard ---
 /arc/outboundfeeds/flipboard/
 /arc/outboundfeeds/flipboard/category/futbol/
 /arc/outboundfeeds/flipboard/author/camila-tomaselli/
-/arc/outboundfeeds/flipboard/author/sebastian-coronati/
-/arc/outboundfeeds/flipboard/tags/mundial-2026/
 /arc/outboundfeeds/flipboard/tags/lionel-messi/
-/arc/outboundfeeds/flipboard/tags_slug/mundial-2026/
 /arc/outboundfeeds/flipboard/tags_slug/lionel-messi/
+/arc/outboundfeeds/flipboard/?from=10&size=10
 
 # --- sitemap ---
 /arc/outboundfeeds/sitemap/
 /arc/outboundfeeds/sitemap/category/futbol/
 /arc/outboundfeeds/sitemap/author/camila-tomaselli/
-/arc/outboundfeeds/sitemap/author/sebastian-coronati/
-/arc/outboundfeeds/sitemap/tags/mundial-2026/
 /arc/outboundfeeds/sitemap/tags/lionel-messi/
-/arc/outboundfeeds/sitemap/tags_slug/mundial-2026/
 /arc/outboundfeeds/sitemap/tags_slug/lionel-messi/
+/arc/outboundfeeds/sitemap/?from=10&size=10
 
 # --- sitemap-news ---
 /arc/outboundfeeds/sitemap-news/
 /arc/outboundfeeds/sitemap-news/category/futbol/
 /arc/outboundfeeds/sitemap-news/author/camila-tomaselli/
-/arc/outboundfeeds/sitemap-news/author/sebastian-coronati/
-/arc/outboundfeeds/sitemap-news/tags/mundial-2026/
 /arc/outboundfeeds/sitemap-news/tags/lionel-messi/
-/arc/outboundfeeds/sitemap-news/tags_slug/mundial-2026/
 /arc/outboundfeeds/sitemap-news/tags_slug/lionel-messi/
+/arc/outboundfeeds/sitemap-news/?from=10&size=10
 
 # --- sitemap-video ---
 /arc/outboundfeeds/sitemap-video/
 /arc/outboundfeeds/sitemap-video/category/futbol/
 /arc/outboundfeeds/sitemap-video/author/camila-tomaselli/
-/arc/outboundfeeds/sitemap-video/author/sebastian-coronati/
-/arc/outboundfeeds/sitemap-video/tags/mundial-2026/
 /arc/outboundfeeds/sitemap-video/tags/lionel-messi/
-/arc/outboundfeeds/sitemap-video/tags_slug/mundial-2026/
 /arc/outboundfeeds/sitemap-video/tags_slug/lionel-messi/
+/arc/outboundfeeds/sitemap-video/?from=10&size=10
 
 # --- ans (json) ---
 /arc/outboundfeeds/ans/
 /arc/outboundfeeds/ans/category/futbol/
 /arc/outboundfeeds/ans/author/camila-tomaselli/
-/arc/outboundfeeds/ans/author/sebastian-coronati/
-/arc/outboundfeeds/ans/tags/mundial-2026/
 /arc/outboundfeeds/ans/tags/lionel-messi/
-/arc/outboundfeeds/ans/tags_slug/mundial-2026/
 /arc/outboundfeeds/ans/tags_slug/lionel-messi/
+/arc/outboundfeeds/ans/?from=10&size=10
 
 # --- Sueltos ---
 /arc/outboundfeeds/alexa/
-/arc/outboundfeeds/article/
+/arc/outboundfeeds/article/?_id=K4KNUCWI5NG2XDNVY36VYNCSXY
 /arc/outboundfeeds/article/tecnologia/2026/06/24/google-celebro-el-nuevo-record-de-messi-con-una-sorpresa-para-millones-de-usuarios-que-aparece-al-buscar-su-nombre/
 /arc/outboundfeeds/sitemap-section/
 
@@ -117,3 +97,11 @@
 /arc/outboundfeeds/sitemap-news3-index/?outputType=xml
 /arc/outboundfeeds/sitemap2-index/?outputType=xml
 /arc/outboundfeeds/sitemap3-index/?outputType=xml
+
+# --- "With day" variants (sitemaps por fecha) ---
+/arc/outboundfeeds/sitemap/latest/
+/arc/outboundfeeds/sitemap-news/latest/
+/arc/outboundfeeds/sitemap2/latest/
+/arc/outboundfeeds/sitemap3/latest/
+/arc/outboundfeeds/sitemap-news2/latest/
+/arc/outboundfeeds/sitemap-news3/latest/
